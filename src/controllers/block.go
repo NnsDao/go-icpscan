@@ -133,7 +133,7 @@ func BlockIndex(context *gin.Context) {
 
 
 	// 转账数据
-	var tData = js.Get("block").Get("transactions").GetIndex(1).Get("operations").MustArray()
+	var tData = js.Get("block").Get("transactions").GetIndex(0).Get("operations").MustArray()
 
 	fmt.Println(tData)
 
