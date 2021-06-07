@@ -11,6 +11,7 @@ type Detail struct {
 	Oaccountaddress string // 转账账户地址
 	Oamountvalue string // 转账价值，可能为负数
 	Oamountcurrencydecimals string //转账代币小数点
+	Oamountcurrencysymbol string
 	Mblockheight string // 区块metadata高度
 	Mmemo string // 区块备注
 	Mtimestamp string // 区块备注
