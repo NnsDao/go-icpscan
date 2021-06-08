@@ -298,17 +298,16 @@ func BlockIndex(context *gin.Context) {
 	}
 
 }
-// TODO 排行
+// TODO 排行 TOP100
 func BlockShow(context *gin.Context) {
+	var blockShow []models.BlockShow
+	db.Table("details").Select("oaccountaddress, sum(oamountvalue) as total, count(*) as times").Where("otype  <> ?",
+		"FEE").Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
 
-	db.Model(&detail).Select("oaccountaddress, sum(oamountvalue) as total").Where("otype  <> ?", "FEE").Group("oaccountaddress").Order("sum(oamountvalue)").Order("oamountvalue desc").Scan(&detail)
-
-	//select oaccountaddress,sum(oamountvalue),count(1)  from details  where otype !="FEE"
-	//group by oaccountaddress  order by sum(oamountvalue) desc limit 100
 
 	context.JSON(200, gin.H{
 		"success": true,
-		"data":    detail,
+		"data":    blockShow,
 	})
 }
 

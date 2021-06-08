@@ -11,6 +11,6 @@ func addBlockRoutes() {
 		BlockRoutes.GET("/show", controllers.BlockShow)
 		BlockRoutes.POST("/", controllers.BlockCreate)
 		BlockRoutes.PUT("/:id", controllers.BlockUpdate)
-		BlockRoutes.DELETE("/:id", controllers.BlockDelete)
+		//BlockRoutes.DELETE("/:id", controllers.BlockDelete)
 	}
 }

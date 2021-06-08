@@ -18,3 +18,9 @@ type Detail struct {
 	CreatedAt time.Time `gorm:"time"` // 创建时间
 	UpdatedAt time.Time `gorm:"time"` // 更新时间
 }
+
+type BlockShow struct {
+	Oaccountaddress string
+	Total float64 `gorm:"total"`
+	Times uint8 `gorm:"times"`
+}
