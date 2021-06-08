@@ -69,10 +69,8 @@ func (obj *Identifier) Encode() ([]byte, error) {
 func BlockIndex(context *gin.Context) {
 
 
-	//备注
-
-	for i := 134427; i < 134428; i++ {
-
+	//备注 结束循环 TODO 定时
+	for i := 1; i < 1; i++ {
 	//	当前的参数
 
 	//jsonStr :=[]byte(`{
@@ -300,16 +298,21 @@ func BlockIndex(context *gin.Context) {
 	}
 
 }
-
+// TODO 排行
 func BlockShow(context *gin.Context) {
-	db.First(&user, context.Param("id"))
+
+	db.Model(&detail).Select("oaccountaddress, sum(oamountvalue) as total").Where("otype  <> ?", "FEE").Group("oaccountaddress").Order("sum(oamountvalue)").Order("oamountvalue desc").Scan(&detail)
+
+	//select oaccountaddress,sum(oamountvalue),count(1)  from details  where otype !="FEE"
+	//group by oaccountaddress  order by sum(oamountvalue) desc limit 100
+
 	context.JSON(200, gin.H{
 		"success": true,
-		"data":    user,
+		"data":    detail,
 	})
 }
 
-// 爬取数据
+// TODO 最新区块数据
 
 func BlockCreate(context *gin.Context) {
 
@@ -319,7 +322,10 @@ func BlockCreate(context *gin.Context) {
 		"success": true,
 		"data":    user,
 	})
+
 }
+
+// TODO 区块高度、价格、罐的注册数量、消息等数据
 
 func BlockUpdate(context *gin.Context) {
 	db.First(&user, context.Param("id"))
@@ -331,10 +337,10 @@ func BlockUpdate(context *gin.Context) {
 	})
 }
 
-func BlockDelete(context *gin.Context) {
-	db.First(&user, context.Param("id"))
-	db.Delete(&user)
-	context.JSON(200, gin.H{
-		"success": true,
-	})
-}
+//func BlockDelete(context *gin.Context) {
+//	db.First(&user, context.Param("id"))
+//	db.Delete(&user)
+//	context.JSON(200, gin.H{
+//		"success": true,
+//	})
+//}
