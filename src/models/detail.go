@@ -23,4 +23,17 @@ type BlockShow struct {
 	Oaccountaddress string
 	Total float64 `gorm:"total"`
 	Times uint8 `gorm:"times"`
+	Mtime string `gorm:"mtime"`
+}
+
+type ResultShow struct {
+	Oaccountaddress  string
+	Tranidentifier string
+	Oamountvalue string
+	Blocktimestamp string
+	Transactiohash string
+	Parentblock string
+	Mmemo string
+	Id uint
+	Mblockheight string
 }

@@ -301,9 +301,8 @@ func BlockIndex(context *gin.Context) {
 // TODO 排行 TOP100
 func BlockShow(context *gin.Context) {
 	var blockShow []models.BlockShow
-	db.Table("details").Select("oaccountaddress, sum(oamountvalue) as total, count(*) as times").Where("otype  <> ?",
-		"FEE").Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
-
+	db.Table("details").Select("MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times ").Where("otype  <> ?",
+		"FEE").Group("oaccountaddress").Order("total desc").Limit(5).Scan(&blockShow)
 
 	context.JSON(200, gin.H{
 		"success": true,
@@ -311,15 +310,30 @@ func BlockShow(context *gin.Context) {
 	})
 }
 
-// TODO 最新区块数据
 
-func BlockCreate(context *gin.Context) {
 
-	user := models.User{Name: context.PostForm("name")}
-	db.Create(&user)
+
+func BlockShowPpp(context *gin.Context) {
+
+	var result []models.ResultShow
+
+	db.Table("details").Select("blocks.transactiohash,blocks.parentblock,blocks.mmemo,details.oaccountaddress,blocks.mblockheight, details.tranidentifier,details.oamountvalue,blocks.blocktimestamp,blocks.id").Joins("left join blocks on  blocks.mblockheight = details.mblockheight ").Limit(10).Scan(&result)
+
 	context.JSON(200, gin.H{
 		"success": true,
-		"data":    user,
+		"data":    result,
+	})
+}
+//
+
+// TODO 最新区块数据
+
+func BlockNew(context *gin.Context) {
+	// select * from blocks    order by   CAST(mblockheight as SIGNED )     desc   limit  10
+	db.Order("CAST(blocks.mblockheight as SIGNED ) desc").Limit(10).Find(&blocks)
+	context.JSON(200, gin.H{
+		"success": true,
+		"data":    blocks,
 	})
 
 }

@@ -5,11 +5,12 @@ import (
 )
 
 func addBlockRoutes() {
-	BlockRoutes := Router.Group("/block")
+	BlockRoutes := Router.Group("/api/block")
 	{
 		BlockRoutes.GET("/", controllers.BlockIndex)
 		BlockRoutes.GET("/show", controllers.BlockShow)
-		BlockRoutes.POST("/", controllers.BlockCreate)
+		BlockRoutes.GET("/test", controllers.BlockShowPpp)
+		BlockRoutes.GET("/newList", controllers.BlockNew)
 		BlockRoutes.PUT("/:id", controllers.BlockUpdate)
 		//BlockRoutes.DELETE("/:id", controllers.BlockDelete)
 	}
