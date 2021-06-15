@@ -13,5 +13,6 @@ func addBlockRoutes() {
 		BlockRoutes.GET("/newList", controllers.BlockNew)
 		//BlockRoutes.PUT("/:id", controllers.BlockUpdate)
 		BlockRoutes.GET("/detail", controllers.BlockDetail)
+		BlockRoutes.GET("/search", controllers.SearchDetail)
 	}
 }

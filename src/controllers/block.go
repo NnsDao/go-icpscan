@@ -5,19 +5,16 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"github.com/MatheusMeloAntiquera/api-go/src/response"
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
 	"github.com/bitly/go-simplejson"
 	"github.com/gin-gonic/gin"
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"github.com/thoas/go-funk"
 )
 
-var blocks []models.Block
-var block models.Block
-
-
-var details []models.Detail
 var detail models.Detail
 
 
@@ -315,7 +312,7 @@ func BlockShow(context *gin.Context) {
 // test
 func BlockShowPpp(context *gin.Context) {
 
-	var result []models.ResultNew
+	var result []response.BlockNewRes
 
 	db.Table("details").Select("blocks.transactiohash,blocks.parentblock,blocks.mmemo,details.oaccountaddress,blocks.mblockheight, details.tranidentifier,details.oamountvalue,blocks.blocktimestamp,blocks.id").Joins("left join blocks on  blocks.mblockheight = details.mblockheight ").Limit(10).Scan(&result)
 
@@ -330,16 +327,35 @@ func BlockShowPpp(context *gin.Context) {
 
 func BlockNew(context *gin.Context) {
 
-	var resultNew []models.ResultNew
+	var Res []response.BlockNewRes
+	var block []models.Block
+	var detail []models.NewDetail
 
-	db.Raw("select de.ostatus,de.tranidentifier,bl.transactiohash,bl.mmemo,bl.blocktimestamp,bl.mblockheight,de.oaccountaddress,sum(de.oamountvalue) as osum  from blocks  bl left join details de on  bl.`mblockheight` = de.`mblockheight`  where de.otype !='FEE'  and de.oamountvalue > 0  group by de.oaccountaddress,bl.mblockheight  order by   CAST(bl.mblockheight as SIGNED )  desc limit 10").Scan(&resultNew)
+	db.Table("blocks").Select("mblockheight, mmemo, transactiohash, blocktimestamp").Order("mblockheight desc").Limit(10).Scan(&block)
+	mapBlock := funk.ToMap(block, "Mblockheight").(map[string]models.Block)
+	mblockheight := funk.Get(block, "Mblockheight")
 
-	//db.Raw("select * from blocks    order by   CAST(mblockheight as SIGNED )     desc   limit  10").Scan(&blocks)
-	//fmt.Println(blocks)
+	db.Table("details").Select("mblockheight, ostatus, tranidentifier, oaccountaddress, SUM(oamountvalue) as osum").Where("mblockheight In ?",
+		mblockheight).Group("oaccountaddress").Scan(&detail)
+
+	// 组装返回数据
+	for _,v := range detail {
+		Res = append(Res, response.BlockNewRes{
+			Oaccountaddress: v.Oaccountaddress,
+			Tranidentifier: v.Tranidentifier,
+			Blocktimestamp: mapBlock[v.Mblockheight].Blocktimestamp,
+			Transactiohash: mapBlock[v.Mblockheight].Transactiohash,
+			Ostatus: v.Ostatus,
+			Osum: v.Osum,
+			Mmemo: mapBlock[v.Mblockheight].Mmemo,
+			Mblockheight: v.Mblockheight,
+
+		})
+	}
 
 	context.JSON(200, gin.H{
 		"success": true,
-		"data":    resultNew,
+		"data":    Res,
 	})
 
 }
@@ -368,3 +384,56 @@ func BlockDetail(c *gin.Context) {
 		"data":    detail,
 	})
 }
+
+// 查询交易、账户信息
+func SearchDetail(c *gin.Context) {
+	recorde_addr := c.DefaultQuery("recorde_addr", "")
+	if (recorde_addr == "") {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "参数错误",
+		})
+		return
+	}
+
+	// todo 知道怎么区分account、TransactionHash是进行更改，先无脑查询
+	var detail []models.Detail
+	var recordCount int64
+	var res response.SearchDetailRes
+	db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Count(&recordCount);
+
+	// 如果等于3证明是TransactionHash,则需要进行交易详情返回
+	if (recordCount == 3) {
+		res.Type = 1
+		db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Scan(&detail);
+		for _, v := range detail {
+			switch v.Oindex {
+			case "0":
+				res.From = v.Oaccountaddress
+				res.Status = v.Ostatus
+			case "1":
+				res.To = v.Oaccountaddress
+				res.Amount = v.Oamountvalue
+				res.BlockHeight = v.Mblockheight
+				res.Timestamp = v.Mtimestamp
+				res.Memo = v.Mmemo
+			case "2":
+				res.Fee = v.Oamountvalue
+			}
+		}
+	} else {
+		// 此逻辑为账号信息
+		var accountDetail models.AccountDetail
+		db.Table("details").Select("SUM(oamountvalue) AS balance").Where("oaccountaddress = ?", recorde_addr).Scan(&accountDetail)
+		res.Type = 2
+		res.Account = recorde_addr
+		res.Balance = accountDetail.Balance
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    res,
+	})
+}
+

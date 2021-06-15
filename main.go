@@ -10,5 +10,7 @@ type User struct {
 }
 
 func main() {
+	// 解析配置文件，就不做service了简单来
 	Router.Run()
 }
+

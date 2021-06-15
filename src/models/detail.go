@@ -26,14 +26,15 @@ type BlockShow struct {
 	Mtime string `gorm:"mtime"`
 }
 
-type ResultNew struct {
+type NewDetail struct {
 	Oaccountaddress  string
 	Tranidentifier string
-	Oamountvalue string
-	Blocktimestamp string
-	Transactiohash string
 	Ostatus string
-	Mmemo string
 	Osum string
 	Mblockheight string
+}
+
+type AccountDetail struct {
+	Oaccountaddress string
+	Balance string `gorm:"balance"`
 }

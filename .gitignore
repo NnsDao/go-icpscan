@@ -21,3 +21,4 @@ bower_components/
 builds/**/images/*
 /src/controllers/main.go
 vendor
+icpscan.config
