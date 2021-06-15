@@ -8,7 +8,7 @@ import (
 var db *gorm.DB
 
 func init() {
-	connection, err := gorm.Open(mysql.Open("root:nnsdao8799_!33@tcp(cdb-m0nw6jnk.bj.tencentcdb.com:10024)/icpscan?charset=utf8mb4&parseTime=True&loc=Local"), &gorm.Config{})
+	connection, err := gorm.Open(mysql.Open("root:root@tcp(cdb-m0nw6jnk.bj.tencentcdb.com:10024)/icpscan?charset=utf8mb4&parseTime=True&loc=Local"), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
 	}

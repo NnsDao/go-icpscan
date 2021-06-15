@@ -312,10 +312,10 @@ func BlockShow(context *gin.Context) {
 
 
 
-
+// test
 func BlockShowPpp(context *gin.Context) {
 
-	var result []models.ResultShow
+	var result []models.ResultNew
 
 	db.Table("details").Select("blocks.transactiohash,blocks.parentblock,blocks.mmemo,details.oaccountaddress,blocks.mblockheight, details.tranidentifier,details.oamountvalue,blocks.blocktimestamp,blocks.id").Joins("left join blocks on  blocks.mblockheight = details.mblockheight ").Limit(10).Scan(&result)
 
@@ -329,31 +329,42 @@ func BlockShowPpp(context *gin.Context) {
 // TODO 最新区块数据
 
 func BlockNew(context *gin.Context) {
-	// select * from blocks    order by   CAST(mblockheight as SIGNED )     desc   limit  10
-	db.Order("CAST(blocks.mblockheight as SIGNED ) desc").Limit(10).Find(&blocks)
+
+	var resultNew []models.ResultNew
+
+	db.Raw("select de.ostatus,de.tranidentifier,bl.transactiohash,bl.mmemo,bl.blocktimestamp,bl.mblockheight,de.oaccountaddress,sum(de.oamountvalue) as osum  from blocks  bl left join details de on  bl.`mblockheight` = de.`mblockheight`  where de.otype !='FEE'  and de.oamountvalue > 0  group by de.oaccountaddress,bl.mblockheight  order by   CAST(bl.mblockheight as SIGNED )  desc limit 10").Scan(&resultNew)
+
+	//db.Raw("select * from blocks    order by   CAST(mblockheight as SIGNED )     desc   limit  10").Scan(&blocks)
+	//fmt.Println(blocks)
+
 	context.JSON(200, gin.H{
 		"success": true,
-		"data":    blocks,
+		"data":    resultNew,
 	})
 
 }
 
 // TODO 区块高度、价格、罐的注册数量、消息等数据
 
-func BlockUpdate(context *gin.Context) {
-	db.First(&user, context.Param("id"))
-	user.Name = context.PostForm("name")
-	db.Save(&user)
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    user,
-	})
-}
-
-//func BlockDelete(context *gin.Context) {
+//func BlockUpdate(context *gin.Context) {
 //	db.First(&user, context.Param("id"))
-//	db.Delete(&user)
+//	user.Name = context.PostForm("name")
+//	db.Save(&user)
 //	context.JSON(200, gin.H{
 //		"success": true,
+//		"data":    user,
 //	})
 //}
+
+func BlockDetail(c *gin.Context) {
+
+	bid := c.Query("id") //
+
+	fmt.Printf("id: %s;", bid)
+
+	db.Where("Mblockheight = ?", bid).Find(&detail)
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    detail,
+	})
+}
