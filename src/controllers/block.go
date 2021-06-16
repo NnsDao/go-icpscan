@@ -334,9 +334,11 @@ func BlockNew(context *gin.Context) {
 	db.Table("blocks").Select("mblockheight, mmemo, transactiohash, blocktimestamp").Order("mblockheight desc").Limit(10).Scan(&block)
 	mapBlock := funk.ToMap(block, "Mblockheight").(map[string]models.Block)
 	mblockheight := funk.Get(block, "Mblockheight")
+	fmt.Printf("blocks is %+v\n", block)
+	fmt.Printf("mblockheight is %+v\n", mblockheight)
 
-	db.Table("details").Select("mblockheight, ostatus, tranidentifier, oaccountaddress, SUM(oamountvalue) as osum").Where("mblockheight In ?",
-		mblockheight).Group("oaccountaddress").Scan(&detail)
+	db.Table("details").Select("mblockheight, ostatus, tranidentifier, oaccountaddress, SUM(oamountvalue) as osum").Where("mblockheight In ? AND otype <> ? AND oamountvalue > ?",
+		mblockheight, "FEE", 0).Group("oaccountaddress, mblockheight").Order("mblockheight desc").Scan(&detail)
 
 	// 组装返回数据
 	for _,v := range detail {
