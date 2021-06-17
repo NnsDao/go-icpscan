@@ -5,14 +5,14 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/MatheusMeloAntiquera/api-go/src/response"
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
+	"github.com/MatheusMeloAntiquera/api-go/src/response"
 	"github.com/bitly/go-simplejson"
 	"github.com/gin-gonic/gin"
+	"github.com/thoas/go-funk"
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"github.com/thoas/go-funk"
 )
 
 var detail models.Detail
@@ -418,7 +418,10 @@ func SearchDetail(c *gin.Context) {
 				res.To = v.Oaccountaddress
 				res.Amount = v.Oamountvalue
 				res.BlockHeight = v.Mblockheight
+				res.Tranidentifier = v.Tranidentifier
+				res.Symbol = v.Oamountcurrencysymbol
 				res.Timestamp = v.Mtimestamp
+				res.Decimals = v.Oamountcurrencydecimals
 				res.Memo = v.Mmemo
 			case "2":
 				res.Fee = v.Oamountvalue

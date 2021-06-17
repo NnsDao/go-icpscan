@@ -23,4 +23,7 @@ type SearchDetailRes struct {
 	Fee string // 转账手续费
 	Memo string // 区块备注
 	Balance string // 账户余额
+	Tranidentifier string // 转账hash
+	Symbol string // 转账货币符号
+	Decimals string // 转账货币位数
 }
