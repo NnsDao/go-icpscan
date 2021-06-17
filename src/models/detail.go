@@ -22,7 +22,7 @@ type Detail struct {
 type BlockShow struct {
 	Oaccountaddress string
 	Total float64 `gorm:"total"`
-	Times uint8 `gorm:"times"`
+	Times float64 `gorm:"times"`
 	Mtime string `gorm:"mtime"`
 }
 
