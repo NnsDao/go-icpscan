@@ -278,7 +278,7 @@ func BlockIndex(context *gin.Context) {
 func BlockShow(context *gin.Context) {
 	var blockShow []models.BlockShow
 	db.Table("details").Select("MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times ").Where("otype  <> ? AND oamountvalue > ?",
-		"FEE", 0).Group("oaccountaddress").Order("total desc").Limit(5).Scan(&blockShow)
+		"FEE", 0).Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
 
 	context.JSON(200, gin.H{
 		"success": true,
