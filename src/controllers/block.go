@@ -276,9 +276,11 @@ func BlockIndex(context *gin.Context) {
 }
 // TODO 排行 TOP100
 func BlockShow(context *gin.Context) {
+
+	//SELECT MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times  FROM `details` WHERE otype  <> 'FEE' GROUP BY `oaccountaddress` ORDER BY total desc LIMIT 5
 	var blockShow []models.BlockShow
-	db.Table("details").Select("MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times ").Where("otype  <> ? AND oamountvalue > ?",
-		"FEE", 0).Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
+	db.Table("details").Select("MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times ").Where("otype  <> ? ",
+		"FEE").Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
 
 	context.JSON(200, gin.H{
 		"success": true,
