@@ -427,7 +427,7 @@ func SearchDetail(c *gin.Context) {
 }
 
 // 账户交易详情
-func GetAccountTranceDetail(c *gin.Context) {
+func GetAccountDealDetail(c *gin.Context) {
 	account := c.DefaultQuery("account", "")
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "10")
@@ -456,7 +456,28 @@ func GetAccountTranceDetail(c *gin.Context) {
 	var detail []models.Detail
 	Db.Table("details").Where("oaccountaddress = ?", account).Offset(pageInt).Limit(pageSizeInt).Scan(&detail)
 
+	var item response.AccountDealDetail
+	var res []response.AccountDealDetail
+	for _, v := range detail {
+		switch v.Oindex {
+		case "0":
+			item.From = v.Oaccountaddress
+		case "1":
+			item.To = v.Oaccountaddress
+			item.Amount = v.Oamountvalue
+			item.Timestamp = v.Mtimestamp
+			item.Tranidentifier = v.Tranidentifier
+		case "2":
+			item.Fee = v.Oamountvalue
+		}
+		res = append(res, item)
+		item = response.AccountDealDetail{}
+	}
 
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    res,
+	})
 
 
 }
