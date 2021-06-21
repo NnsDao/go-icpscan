@@ -32,6 +32,7 @@ type Block struct {
 	Index int32 `json:"index"`
 }
 
+
 func (obj *Identifier) Encode() ([]byte, error) {
 	buf := new(bytes.Buffer)
 
@@ -42,29 +43,33 @@ func (obj *Identifier) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+
 func BlockIndex(context *gin.Context) {
 
 
 	//备注 结束循环 TODO 定时
-	for i := 1; i < 1; i++ {
+	//for i := 192897; i < 193308; i++ {
 	//	当前的参数
 
-	//jsonStr :=[]byte(`{
-	//		"network_identifier": {
-	//			"blockchain": "Internet Computer",
-	//			"network": "00000000000000020101"
-	//		},
-    //        "block_identifier": {
-	//				"index": 8
-	//		}
-	//
-	//	}`)
+	// 查找当前的blockheight
 
+	var blockId []models.Block
+	Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId)
+
+	fmt.Println("pppp", blockId[0].Mblockheight)
+
+	ih, err := strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
+	if err != nil {
+		fmt.Println(err)
+	}
+	j := int32(ih)+1
+	fmt.Printf("j value is %d, type is %T", j, j)
+	//return
 	identify :=  Identifier {}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
 	identify.NetworkIdentifier.Network = "00000000000000020101"
-	identify.BlockIdentifier.Index = int32(i)
+	identify.BlockIdentifier.Index = j
 
 
 	jsonStu, err := json.Marshal(identify)
@@ -110,6 +115,7 @@ func BlockIndex(context *gin.Context) {
 
 	if err2 != nil {
 		fmt.Println("抓取fail" ,err2 )
+		return
 	}
 	// 保存数据
 
@@ -139,20 +145,18 @@ func BlockIndex(context *gin.Context) {
 	var utime = js.Get("block").Get("transactions").GetIndex(0).Get("metadata").Get("timestamp").MustInt()
 
 
-	fmt.Println(strconv.Itoa(bindex))
-	fmt.Println(preindex)
-	fmt.Println(cindex)
-	fmt.Println(bttime)
-	fmt.Println("转账hash",tidentify)
-
-	fmt.Println()
-
-	fmt.Println("metada1:",bheight)
-	fmt.Println("metada2:",mmemo)
-	fmt.Println("metada3:",utime)
-
+	//fmt.Println(strconv.Itoa(bindex))
+	//fmt.Println(preindex)
+	//fmt.Println(cindex)
+	//fmt.Println(bttime)
+	//fmt.Println("转账hash",tidentify)
+	//
+	//fmt.Println()
+	//
+	//fmt.Println("metada1:",bheight)
+	//fmt.Println("metada2:",mmemo)
+	//fmt.Println("metada3:",utime)
 	// 存储多层信息
-
 
 	// 转账数据
 	var tData = js.Get("block").Get("transactions").GetIndex(0).Get("operations").MustArray()
@@ -211,14 +215,13 @@ func BlockIndex(context *gin.Context) {
 			otype = each_map["type"].(string)
 			ostatus = each_map["status"].(string)
 
-
-			fmt.Println("当前用户地址",oaddress)
-			fmt.Println(ovalue)
-			fmt.Println(otype)
-			fmt.Println(odecimals)
-			fmt.Println(osymbol)
-			fmt.Println(ostatus)
-			fmt.Println("当前索引",oindex)
+			//fmt.Println("当前用户地址",oaddress)
+			//fmt.Println(ovalue)
+			//fmt.Println(otype)
+			//fmt.Println(odecimals)
+			//fmt.Println(osymbol)
+			//fmt.Println(ostatus)
+			//fmt.Println("当前索引",oindex)
 
 			detail := models.Detail{
 				Tranidentifier: tidentify,
@@ -271,7 +274,7 @@ func BlockIndex(context *gin.Context) {
 		"success": true,
 		"data":    js,
 	})
-	}
+	//}
 
 }
 // TODO 排行 TOP100

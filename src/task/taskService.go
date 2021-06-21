@@ -57,24 +57,23 @@ func (obj *Identifier) Encode() ([]byte, error) {
 
 
 func (t *taskService) PullBlockDetail()  {
-	//	当前的参数
+	var blockId []models.Block
+	controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId)
 
-	//jsonStr :=[]byte(`{
-	//		"network_identifier": {
-	//			"blockchain": "Internet Computer",
-	//			"network": "00000000000000020101"
-	//		},
-	//        "block_identifier": {
-	//				"index": 8
-	//		}
-	//
-	//	}`)
+	fmt.Println("pppp", blockId[0].Mblockheight)
 
+	ih, err := strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
+	if err != nil {
+		fmt.Println(err)
+	}
+	j := int32(ih)+1
+	fmt.Printf("j value is %d, type is %T", j, j)
+	//return
 	identify :=  Identifier {}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
 	identify.NetworkIdentifier.Network = "00000000000000020101"
-	identify.BlockIdentifier.Index = int32(i)
+	identify.BlockIdentifier.Index = j
 
 
 	jsonStu, err := json.Marshal(identify)
@@ -120,6 +119,7 @@ func (t *taskService) PullBlockDetail()  {
 
 	if err2 != nil {
 		fmt.Println("抓取fail" ,err2 )
+		return
 	}
 	// 保存数据
 
@@ -149,20 +149,18 @@ func (t *taskService) PullBlockDetail()  {
 	var utime = js.Get("block").Get("transactions").GetIndex(0).Get("metadata").Get("timestamp").MustInt()
 
 
-	fmt.Println(strconv.Itoa(bindex))
-	fmt.Println(preindex)
-	fmt.Println(cindex)
-	fmt.Println(bttime)
-	fmt.Println("转账hash",tidentify)
-
-	fmt.Println()
-
-	fmt.Println("metada1:",bheight)
-	fmt.Println("metada2:",mmemo)
-	fmt.Println("metada3:",utime)
-
+	//fmt.Println(strconv.Itoa(bindex))
+	//fmt.Println(preindex)
+	//fmt.Println(cindex)
+	//fmt.Println(bttime)
+	//fmt.Println("转账hash",tidentify)
+	//
+	//fmt.Println()
+	//
+	//fmt.Println("metada1:",bheight)
+	//fmt.Println("metada2:",mmemo)
+	//fmt.Println("metada3:",utime)
 	// 存储多层信息
-
 
 	// 转账数据
 	var tData = js.Get("block").Get("transactions").GetIndex(0).Get("operations").MustArray()
@@ -221,14 +219,13 @@ func (t *taskService) PullBlockDetail()  {
 			otype = each_map["type"].(string)
 			ostatus = each_map["status"].(string)
 
-
-			fmt.Println("当前用户地址",oaddress)
-			fmt.Println(ovalue)
-			fmt.Println(otype)
-			fmt.Println(odecimals)
-			fmt.Println(osymbol)
-			fmt.Println(ostatus)
-			fmt.Println("当前索引",oindex)
+			//fmt.Println("当前用户地址",oaddress)
+			//fmt.Println(ovalue)
+			//fmt.Println(otype)
+			//fmt.Println(odecimals)
+			//fmt.Println(osymbol)
+			//fmt.Println(ostatus)
+			//fmt.Println("当前索引",oindex)
 
 			detail := models.Detail{
 				Tranidentifier: tidentify,
@@ -246,6 +243,7 @@ func (t *taskService) PullBlockDetail()  {
 			}
 
 			controllers.Db.Create(&detail)
+			fmt.Printf("detail is %+v", detail)
 
 		}
 	}
@@ -263,12 +261,14 @@ func (t *taskService) PullBlockDetail()  {
 		Mtimestamp: strconv.Itoa(utime),
 		Blocktimestamp: strconv.Itoa(bttime),
 	}
+	fmt.Printf("block is %+v", block)
 
 	controllers.Db.Create(&block)
+
 }
 
 func (t *taskService) Run()  {
-	id, err := t.cron.AddFunc("@every 20s", t.PullBlockDetail)
+	id, err := t.cron.AddFunc("@every 16s", t.PullBlockDetail)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}
