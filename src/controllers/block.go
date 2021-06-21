@@ -426,3 +426,38 @@ func SearchDetail(c *gin.Context) {
 	})
 }
 
+// 账户交易详情
+func GetAccountTranceDetail(c *gin.Context) {
+	account := c.DefaultQuery("account", "")
+	page := c.DefaultQuery("page", "1")
+	pageSize := c.DefaultQuery("page_size", "10")
+
+	if (account == "") {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "参数错误",
+		})
+		return
+	}
+
+	pageInt,_ := strconv.Atoi(page)
+	pageSizeInt,_ := strconv.Atoi(pageSize)
+
+	if (pageSizeInt > 100) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "分页大小最大为100",
+		})
+		return
+	}
+
+	var detail []models.Detail
+	Db.Table("details").Where("oaccountaddress = ?", account).Offset(pageInt).Limit(pageSizeInt).Scan(&detail)
+
+
+
+
+}
+
