@@ -453,32 +453,53 @@ func GetAccountDealDetail(c *gin.Context) {
 		return
 	}
 
-	var detail []models.Detail
-	Db.Table("details").Where("oaccountaddress = ?", account).Offset(pageInt).Limit(pageSizeInt).Scan(&detail)
+	var tranidentifier []models.Detail
+	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Order("id DESC").Offset(pageInt).Limit(pageSizeInt).Scan(&tranidentifier)
+	tranidentifierList := funk.Get(tranidentifier, "Tranidentifier")
 
-	var item response.AccountDealDetail
-	var res []response.AccountDealDetail
-	for _, v := range detail {
-		switch v.Oindex {
-		case "0":
-			item.From = v.Oaccountaddress
-		case "1":
-			item.To = v.Oaccountaddress
-			item.Amount = v.Oamountvalue
-			item.Timestamp = v.Mtimestamp
-			item.Tranidentifier = v.Tranidentifier
-		case "2":
-			item.Fee = v.Oamountvalue
-		}
-		res = append(res, item)
-		item = response.AccountDealDetail{}
+	if len(tranidentifierList.([]string)) == 0 {
+		c.JSON(200, gin.H{
+			"success": true,
+			"data":    nil,
+		})
+		return
 	}
+
+	var detail []models.Detail
+	Db.Table("details").Where("tranidentifier in ?", tranidentifierList).Scan(&detail)
+
+	var tranidentifierDetailMap = make(map[string]*response.AccountDealDetail)
+
+
+	for _, v := range detail {
+		_,ok := tranidentifierDetailMap[v.Tranidentifier]; if !ok {
+			tranidentifierDetailMap[v.Tranidentifier] = &response.AccountDealDetail{}
+		}
+		switch v.Oindex {
+			case "0":
+				tranidentifierDetailMap[v.Tranidentifier].From = v.Oaccountaddress
+				tranidentifierDetailMap[v.Tranidentifier].Account = account
+			case "1":
+				tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
+				tranidentifierDetailMap[v.Tranidentifier].Amount = v.Oamountvalue
+				tranidentifierDetailMap[v.Tranidentifier].Timestamp = v.Mtimestamp
+				tranidentifierDetailMap[v.Tranidentifier].Tranidentifier = v.Tranidentifier
+			case "2":
+				tranidentifierDetailMap[v.Tranidentifier].Fee = v.Oamountvalue
+		}
+	}
+
+	var res []response.AccountDealDetail
+
+	for _, v := range tranidentifierDetailMap {
+		res = append(res, *v)
+	}
+
 
 	c.JSON(200, gin.H{
 		"success": true,
 		"data":    res,
 	})
-
 
 }
 
