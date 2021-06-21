@@ -1,22 +1,35 @@
-package controllers
+package task
 
 import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"log"
+	"strconv"
+
+	"github.com/MatheusMeloAntiquera/api-go/src/controllers"
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
-	"github.com/MatheusMeloAntiquera/api-go/src/response"
+	"github.com/robfig/cron/v3"
 	"github.com/bitly/go-simplejson"
-	"github.com/gin-gonic/gin"
-	"github.com/thoas/go-funk"
 	"io/ioutil"
 	"net/http"
-	"strconv"
 )
 
-var detail models.Detail
+type TaskService interface {
+	PullBlockDetail()
+	Run()
+}
 
+type taskService struct {
+	cron *cron.Cron
+}
+
+func NewTaskService(cronCli *cron.Cron) (TaskService, error){
+	return &taskService{
+		cron: cronCli,
+	}, nil
+}
 
 type Identifier struct {
 	NetworkIdentifier Network `json:"network_identifier"`
@@ -42,11 +55,8 @@ func (obj *Identifier) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func BlockIndex(context *gin.Context) {
 
-
-	//备注 结束循环 TODO 定时
-	for i := 1; i < 1; i++ {
+func (t *taskService) PullBlockDetail()  {
 	//	当前的参数
 
 	//jsonStr :=[]byte(`{
@@ -54,7 +64,7 @@ func BlockIndex(context *gin.Context) {
 	//			"blockchain": "Internet Computer",
 	//			"network": "00000000000000020101"
 	//		},
-    //        "block_identifier": {
+	//        "block_identifier": {
 	//				"index": 8
 	//		}
 	//
@@ -235,12 +245,7 @@ func BlockIndex(context *gin.Context) {
 
 			}
 
-			Db.Create(&detail)
-			context.JSON(200, gin.H{
-				"success": true,
-				"data":    detail,
-			})
-
+			controllers.Db.Create(&detail)
 
 		}
 	}
@@ -259,167 +264,18 @@ func BlockIndex(context *gin.Context) {
 		Blocktimestamp: strconv.Itoa(bttime),
 	}
 
-	Db.Create(&block)
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    block,
-	})
+	controllers.Db.Create(&block)
+}
 
-
-	//Db.Find(&blocks)
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    js,
-	})
+func (t *taskService) Run()  {
+	id, err := t.cron.AddFunc("@every 20s", t.PullBlockDetail)
+	if err != nil {
+		log.Printf("PullBlockDetail err %v", err)
 	}
 
-}
-// TODO 排行 TOP100
-func BlockShow(context *gin.Context) {
+	log.Printf("PullBlockDetail run task id is %d", id)
 
-	//SELECT MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times  FROM `details` WHERE otype  <> 'FEE' GROUP BY `oaccountaddress` ORDER BY total desc LIMIT 5
-	var blockShow []models.BlockShow
-	Db.Table("details").Select("MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times ").Where("otype  <> ? ",
-		"FEE").Group("oaccountaddress").Order("total desc").Limit(100).Scan(&blockShow)
-
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    blockShow,
-	})
+	t.cron.Start()
 }
 
-
-
-// test
-func BlockShowPpp(context *gin.Context) {
-
-	var result []response.BlockNewRes
-
-	Db.Table("details").Select("blocks.transactiohash,blocks.parentblock,blocks.mmemo,details.oaccountaddress,blocks.mblockheight, details.tranidentifier,details.oamountvalue,blocks.blocktimestamp,blocks.id").Joins("left join blocks on  blocks.mblockheight = details.mblockheight ").Limit(10).Scan(&result)
-
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    result,
-	})
-}
-//
-
-// TODO 最新区块数据
-
-func BlockNew(context *gin.Context) {
-
-	var Res []response.BlockNewRes
-	var block []models.Block
-	var detail []models.NewDetail
-
-	Db.Table("blocks").Select("mblockheight, mmemo, transactiohash, blocktimestamp").Order("mblockheight desc").Limit(10).Scan(&block)
-	mapBlock := funk.ToMap(block, "Mblockheight").(map[string]models.Block)
-	mblockheight := funk.Get(block, "Mblockheight")
-	fmt.Printf("blocks is %+v\n", block)
-	fmt.Printf("mblockheight is %+v\n", mblockheight)
-
-	Db.Table("details").Select("mblockheight, ostatus, tranidentifier, oaccountaddress, SUM(oamountvalue) as osum").Where("mblockheight In ? AND otype <> ? AND oamountvalue > ?",
-		mblockheight, "FEE", 0).Group("oaccountaddress, mblockheight").Order("mblockheight desc").Scan(&detail)
-
-	// 组装返回数据
-	for _,v := range detail {
-		Res = append(Res, response.BlockNewRes{
-			Oaccountaddress: v.Oaccountaddress,
-			Tranidentifier: v.Tranidentifier,
-			Blocktimestamp: mapBlock[v.Mblockheight].Blocktimestamp,
-			Transactiohash: mapBlock[v.Mblockheight].Transactiohash,
-			Ostatus: v.Ostatus,
-			Osum: v.Osum,
-			Mmemo: mapBlock[v.Mblockheight].Mmemo,
-			Mblockheight: v.Mblockheight,
-
-		})
-	}
-
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    Res,
-	})
-
-}
-
-// TODO 区块高度、价格、罐的注册数量、消息等数据
-
-//func BlockUpdate(context *gin.Context) {
-//	Db.First(&user, context.Param("id"))
-//	user.Name = context.PostForm("name")
-//	Db.Save(&user)
-//	context.JSON(200, gin.H{
-//		"success": true,
-//		"data":    user,
-//	})
-//}
-
-func BlockDetail(c *gin.Context) {
-
-	bid := c.Query("id") //
-
-	fmt.Printf("id: %s;", bid)
-
-	Db.Where("Mblockheight = ?", bid).Find(&detail)
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    detail,
-	})
-}
-
-// 查询交易、账户信息
-func SearchDetail(c *gin.Context) {
-	recorde_addr := c.DefaultQuery("recorde_addr", "")
-	if (recorde_addr == "") {
-		c.JSON(500, gin.H{
-			"success": false,
-			"data":    "",
-			"message": "参数错误",
-		})
-		return
-	}
-
-	// todo 知道怎么区分account、TransactionHash是进行更改，先无脑查询
-	var detail []models.Detail
-	var recordCount int64
-	var res response.SearchDetailRes
-	Db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Count(&recordCount);
-
-	// 如果等于3证明是TransactionHash,则需要进行交易详情返回
-	if (recordCount == 3) {
-		res.Type = 1
-		Db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Scan(&detail);
-		for _, v := range detail {
-			switch v.Oindex {
-			case "0":
-				res.From = v.Oaccountaddress
-				res.Status = v.Ostatus
-			case "1":
-				res.To = v.Oaccountaddress
-				res.Amount = v.Oamountvalue
-				res.BlockHeight = v.Mblockheight
-				res.Tranidentifier = v.Tranidentifier
-				res.Symbol = v.Oamountcurrencysymbol
-				res.Timestamp = v.Mtimestamp
-				res.Decimals = v.Oamountcurrencydecimals
-				res.Memo = v.Mmemo
-			case "2":
-				res.Fee = v.Oamountvalue
-			}
-		}
-	} else {
-		// 此逻辑为账号信息
-		var accountDetail models.AccountDetail
-		Db.Table("details").Select("SUM(oamountvalue) AS balance").Where("oaccountaddress = ?", recorde_addr).Scan(&accountDetail)
-		res.Type = 2
-		res.Account = recorde_addr
-		res.Balance = accountDetail.Balance
-	}
-
-	c.JSON(200, gin.H{
-		"success": true,
-		"data":    res,
-	})
-}
 
