@@ -426,3 +426,80 @@ func SearchDetail(c *gin.Context) {
 	})
 }
 
+// 账户交易详情
+func GetAccountDealDetail(c *gin.Context) {
+	account := c.DefaultQuery("account", "")
+	page := c.DefaultQuery("page", "1")
+	pageSize := c.DefaultQuery("page_size", "10")
+
+	if (account == "") {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "参数错误",
+		})
+		return
+	}
+
+	pageInt,_ := strconv.Atoi(page)
+	pageSizeInt,_ := strconv.Atoi(pageSize)
+
+	if (pageSizeInt > 100) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "分页大小最大为100",
+		})
+		return
+	}
+
+	var tranidentifier []models.Detail
+	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Order("id DESC").Offset(pageInt).Limit(pageSizeInt).Scan(&tranidentifier)
+	tranidentifierList := funk.Get(tranidentifier, "Tranidentifier")
+
+	if len(tranidentifierList.([]string)) == 0 {
+		c.JSON(200, gin.H{
+			"success": true,
+			"data":    nil,
+		})
+		return
+	}
+
+	var detail []models.Detail
+	Db.Table("details").Where("tranidentifier in ?", tranidentifierList).Scan(&detail)
+
+	var tranidentifierDetailMap = make(map[string]*response.AccountDealDetail)
+
+
+	for _, v := range detail {
+		_,ok := tranidentifierDetailMap[v.Tranidentifier]; if !ok {
+			tranidentifierDetailMap[v.Tranidentifier] = &response.AccountDealDetail{}
+		}
+		switch v.Oindex {
+			case "0":
+				tranidentifierDetailMap[v.Tranidentifier].From = v.Oaccountaddress
+				tranidentifierDetailMap[v.Tranidentifier].Account = account
+			case "1":
+				tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
+				tranidentifierDetailMap[v.Tranidentifier].Amount = v.Oamountvalue
+				tranidentifierDetailMap[v.Tranidentifier].Timestamp = v.Mtimestamp
+				tranidentifierDetailMap[v.Tranidentifier].Tranidentifier = v.Tranidentifier
+			case "2":
+				tranidentifierDetailMap[v.Tranidentifier].Fee = v.Oamountvalue
+		}
+	}
+
+	var res []response.AccountDealDetail
+
+	for _, v := range tranidentifierDetailMap {
+		res = append(res, *v)
+	}
+
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    res,
+	})
+
+}
+

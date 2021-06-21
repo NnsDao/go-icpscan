@@ -27,3 +27,13 @@ type SearchDetailRes struct {
 	Symbol string // 转账货币符号
 	Decimals string // 转账货币位数
 }
+
+type AccountDealDetail struct {
+	Account string // 账户地址
+	Timestamp string // 区块时间
+	From string // 发起转账地址
+	To string // 接收地址
+	Amount string // 转账金额
+	Tranidentifier string // 转账hash
+	Fee string // 转账手续费
+}
