@@ -268,7 +268,7 @@ func (t *taskService) PullBlockDetail()  {
 }
 
 func (t *taskService) Run()  {
-	id, err := t.cron.AddFunc("@every 16s", t.PullBlockDetail)
+	id, err := t.cron.AddFunc("@every 5s", t.PullBlockDetail)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}
