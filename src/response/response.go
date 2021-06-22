@@ -37,3 +37,11 @@ type AccountDealDetail struct {
 	Tranidentifier string // 转账hash
 	Fee string // 转账手续费
 }
+
+type AccountDealDetailRes struct {
+	Detail []AccountDealDetail
+	Total int64
+	Page int
+	PageSize int
+
+}

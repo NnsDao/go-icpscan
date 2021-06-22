@@ -457,7 +457,10 @@ func GetAccountDealDetail(c *gin.Context) {
 	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Order("id DESC").Offset(pageInt).Limit(pageSizeInt).Scan(&tranidentifier)
 	tranidentifierList := funk.Get(tranidentifier, "Tranidentifier")
 
-	if len(tranidentifierList.([]string)) == 0 {
+	var count int64
+	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Count(&count)
+
+	if count == 0 {
 		c.JSON(200, gin.H{
 			"success": true,
 			"data":    nil,
@@ -489,11 +492,14 @@ func GetAccountDealDetail(c *gin.Context) {
 		}
 	}
 
-	var res []response.AccountDealDetail
+	var res response.AccountDealDetailRes
 
 	for _, v := range tranidentifierDetailMap {
-		res = append(res, *v)
+		res.Detail = append(res.Detail, *v)
 	}
+	res.Total = count
+	res.Page = pageInt
+	res.PageSize = pageSizeInt
 
 
 	c.JSON(200, gin.H{
