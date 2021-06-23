@@ -418,7 +418,14 @@ func SearchDetail(c *gin.Context) {
 		Db.Table("details").Select("SUM(oamountvalue) AS balance").Where("oaccountaddress = ?", recorde_addr).Scan(&accountDetail)
 		res.Type = 2
 		res.Account = recorde_addr
-		res.Balance = accountDetail.Balance
+
+		if balanceInt, err := strconv.ParseFloat(accountDetail.Balance, 64); err == nil {
+			if balanceInt < 0 {
+				res.Balance = "0"
+			} else {
+				res.Balance = accountDetail.Balance
+			}
+		}
 	}
 
 	c.JSON(200, gin.H{
