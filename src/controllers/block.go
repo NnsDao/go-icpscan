@@ -12,6 +12,7 @@ import (
 	"github.com/thoas/go-funk"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -497,6 +498,14 @@ func GetAccountDealDetail(c *gin.Context) {
 	for _, v := range tranidentifierDetailMap {
 		res.Detail = append(res.Detail, *v)
 	}
+
+	sort.Slice(res.Detail, func(i, j int) bool {
+		if res.Detail[i].Timestamp > res.Detail[j].Timestamp {
+			return true
+		}
+		return false
+	})
+
 	res.Total = count
 	res.Page = pageInt
 	res.PageSize = pageSizeInt
