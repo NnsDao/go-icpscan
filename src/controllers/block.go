@@ -466,7 +466,7 @@ func GetAccountDealDetail(c *gin.Context) {
 	tranidentifierList := funk.Get(tranidentifier, "Tranidentifier")
 
 	var count int64
-	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Count(&count)
+	Db.Table("details").Where("oaccountaddress = ?", account).Distinct("tranidentifier").Count(&count)
 
 	if count == 0 {
 		c.JSON(200, gin.H{
