@@ -387,13 +387,15 @@ func SearchDetail(c *gin.Context) {
 	// todo 知道怎么区分account、TransactionHash是进行更改，先无脑查询
 	var detail []models.Detail
 	var recordCount int64
+	var recordHashCount int64
 	var res response.SearchDetailRes
-	Db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Count(&recordCount);
+	Db.Table("details").Where("tranidentifier = ?", recorde_addr).Count(&recordHashCount);
+	Db.Table("details").Where("oaccountaddress = ?", recorde_addr).Count(&recordCount);
 
 	// 如果等于3证明是TransactionHash,则需要进行交易详情返回
-	if (recordCount == 3) {
+	if (recordHashCount > 0) {
 		res.Type = 1
-		Db.Table("details").Where("tranidentifier = ?", recorde_addr).Or("oaccountaddress = ?", recorde_addr).Scan(&detail);
+		Db.Table("details").Where("tranidentifier = ?", recorde_addr).Scan(&detail);
 		for _, v := range detail {
 			switch v.Oindex {
 			case "0":
@@ -412,7 +414,7 @@ func SearchDetail(c *gin.Context) {
 				res.Fee = v.Oamountvalue
 			}
 		}
-	} else {
+	} else if (recordCount > 0) {
 		// 此逻辑为账号信息
 		var accountDetail models.AccountDetail
 		Db.Table("details").Select("SUM(oamountvalue) AS balance").Where("oaccountaddress = ?", recorde_addr).Scan(&accountDetail)
