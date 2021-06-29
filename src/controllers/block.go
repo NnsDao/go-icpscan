@@ -462,7 +462,8 @@ func GetAccountDealDetail(c *gin.Context) {
 	}
 
 	var tranidentifier []models.Detail
-	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Order("id DESC").Offset(pageInt).Limit(pageSizeInt).Scan(&tranidentifier)
+	Db.Table("details").Select("DISTINCT(tranidentifier)").Where("oaccountaddress = ?", account).Order("id DESC").Offset(pageSizeInt * (pageInt - 1)).Limit(pageSizeInt).Scan(
+		&tranidentifier)
 	tranidentifierList := funk.Get(tranidentifier, "Tranidentifier")
 
 	var count int64
