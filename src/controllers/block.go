@@ -489,6 +489,17 @@ func GetAccountDealDetail(c *gin.Context) {
 		_,ok := tranidentifierDetailMap[v.Tranidentifier]; if !ok {
 			tranidentifierDetailMap[v.Tranidentifier] = &response.AccountDealDetail{}
 		}
+
+		if (v.Otype == "MINT") {
+			tranidentifierDetailMap[v.Tranidentifier].From = "MINI"
+			tranidentifierDetailMap[v.Tranidentifier].Account = account
+			tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
+			tranidentifierDetailMap[v.Tranidentifier].Amount = v.Oamountvalue
+			tranidentifierDetailMap[v.Tranidentifier].Timestamp = v.Mtimestamp
+			tranidentifierDetailMap[v.Tranidentifier].Tranidentifier = v.Tranidentifier
+			tranidentifierDetailMap[v.Tranidentifier].Fee = "0"
+			continue
+		}
 		switch v.Oindex {
 			case "0":
 				tranidentifierDetailMap[v.Tranidentifier].From = v.Oaccountaddress
