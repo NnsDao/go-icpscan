@@ -45,3 +45,8 @@ type AccountDealDetailRes struct {
 	PageSize int
 
 }
+
+type GetAccountBalanceCurveRes struct {
+	Date []string
+	Balance []string
+}

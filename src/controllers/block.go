@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"sort"
 	"strconv"
+	"time"
 )
 
 var detail models.Detail
@@ -537,5 +538,101 @@ func GetAccountDealDetail(c *gin.Context) {
 		"data":    res,
 	})
 
+}
+
+func GetAccountBalanceCurve(c *gin.Context) {
+	account := c.DefaultQuery("account", "")
+	if account == "" {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "账户不能为空",
+		})
+		return
+	}
+
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime,_ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime,_ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	var rangeData []models.BalanceDaily
+	var data models.BalanceDaily
+
+	Db.Table("balance_daily").Where("oaccountaddress = ? and dt >= ? and dt <= ?", account, rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Scan(&rangeData)
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var dataRes response.GetAccountBalanceCurveRes
+	var balance string
+	Db.Table("balance_daily").Where("oaccountaddress = ? and dt < ?", account, rangeStartTime.Format("20060102")).Order("dt desc").First(&data)
+	balance = data.Balance
+
+	if balance == "" {
+		balance = "0"
+	}
+
+	fmt.Printf("len111 is %v\n", rangeData)
+	fmt.Printf("len is %v\n", len(rangeData))
+
+	if len(rangeData) == 0 {
+		for _,date := range rangeDates {
+			dataRes.Date = append(dataRes.Date, date.Format("20060102"))
+			dataRes.Balance = append(dataRes.Balance, balance)
+		}
+		c.JSON(200, gin.H{
+			"success": true,
+			"data":    dataRes,
+		})
+		return
+	}
+
+	mapRangeData := funk.ToMap(rangeData, "Dt").(map[int64]models.BalanceDaily)
+
+	for _,date := range rangeDates {
+		dateStr := date.Format("20060102")
+		dataRes.Date = append(dataRes.Date, dateStr)
+		dateInt,_ := strconv.ParseInt(dateStr, 10, 64)
+		balanceDailyData, ok := mapRangeData[dateInt]
+		if ok {
+			balance = balanceDailyData.Balance
+		}
+		dataRes.Balance = append(dataRes.Balance, balance)
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
+	return
+
+
+
+
+}
+
+func getDateRange(startDate time.Time, endDate time.Time) []time.Time{
+	diffDays := int(endDate.Sub(startDate).Hours() / 24)
+
+	rangeDate := make([]time.Time, 0, diffDays)
+
+	for i:=0;i<diffDays;i++ {
+		rangeDate = append(rangeDate, startDate.AddDate(0, 0, i))
+	}
+
+	return rangeDate
 }
 
