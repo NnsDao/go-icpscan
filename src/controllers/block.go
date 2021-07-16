@@ -586,9 +586,6 @@ func GetAccountBalanceCurve(c *gin.Context) {
 		balance = "0"
 	}
 
-	fmt.Printf("len111 is %v\n", rangeData)
-	fmt.Printf("len is %v\n", len(rangeData))
-
 	if len(rangeData) == 0 {
 		for _,date := range rangeDates {
 			dataRes.Date = append(dataRes.Date, date.Format("20060102"))
@@ -622,6 +619,58 @@ func GetAccountBalanceCurve(c *gin.Context) {
 
 
 
+}
+
+func GetDAUAccount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime,_ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime,_ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var dauData []models.DAU
+	Db.Table("balance_daily").Select("count(distinct oaccountaddress) as number, dt").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"),
+		rangeEndTime.Format("20060102")).Group("dt").Scan(&dauData)
+
+	mapDau := funk.Map(dauData, func(v models.DAU) (int64, int64) {
+		return v.Dt, v.Number
+	}).(map[int64]int64)
+
+	var res response.DAUAccountRes
+	var dauNumber int64
+
+	for _,date := range rangeDates {
+		dateInt, _ :=strconv.ParseInt(date.Format("20060102"), 10, 64)
+
+		if number,ok := mapDau[dateInt];ok {
+			dauNumber = number
+		}
+
+		res.Dt = append(res.Dt, dateInt)
+		res.Number = append(res.Number, dauNumber)
+
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    res,
+	})
+	return
 }
 
 func getDateRange(startDate time.Time, endDate time.Time) []time.Time{

@@ -50,3 +50,8 @@ type GetAccountBalanceCurveRes struct {
 	Date []string
 	Balance []string
 }
+
+type DAUAccountRes struct {
+	Dt []int64
+	Number []int64
+}

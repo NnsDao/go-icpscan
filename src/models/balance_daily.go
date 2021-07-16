@@ -10,3 +10,8 @@ type BalanceDaily struct {
 	CreatedAt time.Time `gorm:"-" json:"created_at"`
 	UpdatedAt time.Time `gorm:"-" json:"updated_at"`
 }
+
+type DAU struct {
+	Dt int64 `gorm:"column:dt" json:"dt"`
+	Number int64 `json:"number"`
+}
