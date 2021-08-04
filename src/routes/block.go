@@ -7,7 +7,7 @@ import (
 func addBlockRoutes() {
 	BlockRoutes := Router.Group("/api/block")
 	{
-		BlockRoutes.GET("/", controllers.BlockIndex)
+		//BlockRoutes.GET("/", controllers.BlockIndex)
 		BlockRoutes.GET("/show", controllers.BlockShow)
 		BlockRoutes.GET("/test", controllers.BlockShowPpp)
 		BlockRoutes.GET("/newList", controllers.BlockNew)

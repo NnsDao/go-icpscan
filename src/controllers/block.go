@@ -19,21 +19,19 @@ import (
 
 var detail models.Detail
 
-
 type Identifier struct {
 	NetworkIdentifier Network `json:"network_identifier"`
-	BlockIdentifier Block `json:"block_identifier"`
+	BlockIdentifier   Block   `json:"block_identifier"`
 }
 
 type Network struct {
 	BlockChain string `json:"blockchain"`
-	Network string `json:"network"`
+	Network    string `json:"network"`
 }
 
 type Block struct {
 	Index int32 `json:"index"`
 }
-
 
 func (obj *Identifier) Encode() ([]byte, error) {
 	buf := new(bytes.Buffer)
@@ -45,9 +43,7 @@ func (obj *Identifier) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
 func BlockIndex(context *gin.Context) {
-
 
 	//备注 结束循环 TODO 定时
 	//for i := 192897; i < 193308; i++ {
@@ -64,15 +60,14 @@ func BlockIndex(context *gin.Context) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	j := int32(ih)+1
+	j := int32(ih) + 1
 	fmt.Printf("j value is %d, type is %T", j, j)
 	//return
-	identify :=  Identifier {}
+	identify := Identifier{}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
 	identify.NetworkIdentifier.Network = "00000000000000020101"
 	identify.BlockIdentifier.Index = j
-
 
 	jsonStu, err := json.Marshal(identify)
 	if err != nil {
@@ -81,7 +76,6 @@ func BlockIndex(context *gin.Context) {
 
 	//jsonStu是[]byte类型，转化成string类型便于查看
 	//fmt.Println(string(jsonStu))
-
 
 	req, err := http.NewRequest("POST", "https://rosetta-api.internetcomputer.org/block", bytes.NewBuffer(jsonStu))
 	if err != nil {
@@ -102,7 +96,6 @@ func BlockIndex(context *gin.Context) {
 	req.Header.Set("referer", "https://dashboard.internetcomputer.org/")
 	req.Header.Set("accept-language", "zh-CN,zh;q=0.9,en;q=0.8")
 
-
 	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
@@ -116,7 +109,7 @@ func BlockIndex(context *gin.Context) {
 	js, err2 := simplejson.NewJson(str)
 
 	if err2 != nil {
-		fmt.Println("抓取fail" ,err2 )
+		fmt.Println("抓取fail", err2)
 		return
 	}
 	// 保存数据
@@ -146,7 +139,6 @@ func BlockIndex(context *gin.Context) {
 	// 转账区块时间 utc
 	var utime = js.Get("block").Get("transactions").GetIndex(0).Get("metadata").Get("timestamp").MustInt()
 
-
 	//fmt.Println(strconv.Itoa(bindex))
 	//fmt.Println(preindex)
 	//fmt.Println(cindex)
@@ -165,7 +157,6 @@ func BlockIndex(context *gin.Context) {
 
 	//fmt.Println(tData)
 
-
 	for _, row := range tData {
 		if each_map, ok := row.(map[string]interface{}); ok {
 
@@ -173,10 +164,8 @@ func BlockIndex(context *gin.Context) {
 			var oaddress string
 			if start_ts, ok := each_map["account"]; ok {
 
-
 				if plll, ok := start_ts.(map[string]interface{}); ok {
 					oaddress = plll["address"].(string)
-
 
 				}
 
@@ -184,13 +173,11 @@ func BlockIndex(context *gin.Context) {
 			var oindex string
 			if start_ts, ok := each_map["operation_identifier"]; ok {
 
-
 				if plll, ok := start_ts.(map[string]interface{}); ok {
 					oindex = string(plll["index"].(json.Number))
 				}
 
 			}
-
 
 			var ovalue string
 			var odecimals string
@@ -203,13 +190,12 @@ func BlockIndex(context *gin.Context) {
 					// 转账的金额
 					ovalue = string(plll["value"].(string))
 
-					if op,ok := plll["currency"].(map[string]interface{}); ok{
+					if op, ok := plll["currency"].(map[string]interface{}); ok {
 						odecimals = string(op["decimals"].(json.Number))
 						osymbol = string(op["symbol"].(string))
 					}
 				}
 			}
-
 
 			var otype string
 			var ostatus string
@@ -226,18 +212,17 @@ func BlockIndex(context *gin.Context) {
 			//fmt.Println("当前索引",oindex)
 
 			detail := models.Detail{
-				Tranidentifier: tidentify,
-				Oindex: oindex,
-				Otype:  otype ,
-				Ostatus: ostatus,
-				Oaccountaddress: oaddress,
-				Oamountvalue: ovalue,
+				Tranidentifier:          tidentify,
+				Oindex:                  oindex,
+				Otype:                   otype,
+				Ostatus:                 ostatus,
+				Oaccountaddress:         oaddress,
+				Oamountvalue:            ovalue,
 				Oamountcurrencydecimals: odecimals,
-				Oamountcurrencysymbol: osymbol,
-				Mblockheight: strconv.Itoa(bheight),
-				Mmemo: strconv.FormatUint(mmemo, 10),
-				Mtimestamp: strconv.Itoa(utime),
-
+				Oamountcurrencysymbol:   osymbol,
+				Mblockheight:            strconv.Itoa(bheight),
+				Mmemo:                   strconv.FormatUint(mmemo, 10),
+				Mtimestamp:              strconv.Itoa(utime),
 			}
 
 			Db.Create(&detail)
@@ -246,22 +231,19 @@ func BlockIndex(context *gin.Context) {
 				"data":    detail,
 			})
 
-
 		}
 	}
-
-
 
 	// 存储外层信息
 	block := models.Block{
 		Blockidentifier: strconv.Itoa(bindex),
-		Parentblock:  strconv.Itoa(preindex) ,
-		Transactiohash: cindex,
-		Mblockheight: strconv.Itoa(bheight),
-		Mmemo: strconv.FormatUint(mmemo, 10),
-		Tranidentifier: tidentify,
-		Mtimestamp: strconv.Itoa(utime),
-		Blocktimestamp: strconv.Itoa(bttime),
+		Parentblock:     strconv.Itoa(preindex),
+		Transactiohash:  cindex,
+		Mblockheight:    strconv.Itoa(bheight),
+		Mmemo:           strconv.FormatUint(mmemo, 10),
+		Tranidentifier:  tidentify,
+		Mtimestamp:      strconv.Itoa(utime),
+		Blocktimestamp:  strconv.Itoa(bttime),
 	}
 
 	Db.Create(&block)
@@ -269,7 +251,6 @@ func BlockIndex(context *gin.Context) {
 		"success": true,
 		"data":    block,
 	})
-
 
 	//Db.Find(&blocks)
 	context.JSON(200, gin.H{
@@ -279,6 +260,7 @@ func BlockIndex(context *gin.Context) {
 	//}
 
 }
+
 // TODO 排行 TOP100
 func BlockShow(context *gin.Context) {
 
@@ -293,8 +275,6 @@ func BlockShow(context *gin.Context) {
 	})
 }
 
-
-
 // test
 func BlockShowPpp(context *gin.Context) {
 
@@ -307,6 +287,7 @@ func BlockShowPpp(context *gin.Context) {
 		"data":    result,
 	})
 }
+
 //
 
 // TODO 最新区块数据
@@ -327,17 +308,16 @@ func BlockNew(context *gin.Context) {
 		mblockheight, "FEE", 0).Group("oaccountaddress, mblockheight").Order("mblockheight desc").Scan(&detail)
 
 	// 组装返回数据
-	for _,v := range detail {
+	for _, v := range detail {
 		Res = append(Res, response.BlockNewRes{
 			Oaccountaddress: v.Oaccountaddress,
-			Tranidentifier: v.Tranidentifier,
-			Blocktimestamp: mapBlock[v.Mblockheight].Blocktimestamp,
-			Transactiohash: mapBlock[v.Mblockheight].Transactiohash,
-			Ostatus: v.Ostatus,
-			Osum: v.Osum,
-			Mmemo: mapBlock[v.Mblockheight].Mmemo,
-			Mblockheight: v.Mblockheight,
-
+			Tranidentifier:  v.Tranidentifier,
+			Blocktimestamp:  mapBlock[v.Mblockheight].Blocktimestamp,
+			Transactiohash:  mapBlock[v.Mblockheight].Transactiohash,
+			Ostatus:         v.Ostatus,
+			Osum:            v.Osum,
+			Mmemo:           mapBlock[v.Mblockheight].Mmemo,
+			Mblockheight:    v.Mblockheight,
 		})
 	}
 
@@ -374,9 +354,14 @@ func BlockDetail(c *gin.Context) {
 }
 
 // 查询交易、账户信息
+// @Summary 查询交易、账户信息
+// @Description 查询交易、账户信息
+// @Param  recorde_addr query string true "recorde_addr"
+// @Success 200 {object} response.JSONResult{data=response.SearchDetailRes}
+// @Router /api/block/search [get]
 func SearchDetail(c *gin.Context) {
 	recorde_addr := c.DefaultQuery("recorde_addr", "")
-	if (recorde_addr == "") {
+	if recorde_addr == "" {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
@@ -390,13 +375,13 @@ func SearchDetail(c *gin.Context) {
 	var recordCount int64
 	var recordHashCount int64
 	var res response.SearchDetailRes
-	Db.Table("details").Where("tranidentifier = ?", recorde_addr).Count(&recordHashCount);
-	Db.Table("details").Where("oaccountaddress = ?", recorde_addr).Count(&recordCount);
+	Db.Table("details").Where("tranidentifier = ?", recorde_addr).Count(&recordHashCount)
+	Db.Table("details").Where("oaccountaddress = ?", recorde_addr).Count(&recordCount)
 
 	// 如果等于3证明是TransactionHash,则需要进行交易详情返回
-	if (recordHashCount > 0) {
+	if recordHashCount > 0 {
 		res.Type = 1
-		Db.Table("details").Where("tranidentifier = ?", recorde_addr).Scan(&detail);
+		Db.Table("details").Where("tranidentifier = ?", recorde_addr).Scan(&detail)
 		for _, v := range detail {
 			switch v.Oindex {
 			case "0":
@@ -415,7 +400,7 @@ func SearchDetail(c *gin.Context) {
 				res.Fee = v.Oamountvalue
 			}
 		}
-	} else if (recordCount > 0) {
+	} else if recordCount > 0 {
 		// 此逻辑为账号信息
 		var accountDetail models.AccountDetail
 		Db.Table("details").Select("SUM(oamountvalue) AS balance").Where("oaccountaddress = ?", recorde_addr).Scan(&accountDetail)
@@ -437,13 +422,19 @@ func SearchDetail(c *gin.Context) {
 	})
 }
 
-// 账户交易详情
+// @Summary 账户交易详情
+// @Description 账户交易详情
+// @Param  account query string true "account"
+// @Param  page query string false "page"
+// @Param  page_size query string false "page_size"
+// @Success 200 {object} response.JSONResult{data=response.AccountDealDetailRes}
+// @Router /api/block/searchDetail [get]
 func GetAccountDealDetail(c *gin.Context) {
 	account := c.DefaultQuery("account", "")
 	page := c.DefaultQuery("page", "1")
 	pageSize := c.DefaultQuery("page_size", "10")
 
-	if (account == "") {
+	if account == "" {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
@@ -452,10 +443,10 @@ func GetAccountDealDetail(c *gin.Context) {
 		return
 	}
 
-	pageInt,_ := strconv.Atoi(page)
-	pageSizeInt,_ := strconv.Atoi(pageSize)
+	pageInt, _ := strconv.Atoi(page)
+	pageSizeInt, _ := strconv.Atoi(pageSize)
 
-	if (pageSizeInt > 100) {
+	if pageSizeInt > 100 {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
@@ -485,13 +476,13 @@ func GetAccountDealDetail(c *gin.Context) {
 
 	var tranidentifierDetailMap = make(map[string]*response.AccountDealDetail)
 
-
 	for _, v := range detail {
-		_,ok := tranidentifierDetailMap[v.Tranidentifier]; if !ok {
+		_, ok := tranidentifierDetailMap[v.Tranidentifier]
+		if !ok {
 			tranidentifierDetailMap[v.Tranidentifier] = &response.AccountDealDetail{}
 		}
 
-		if (v.Otype == "MINT") {
+		if v.Otype == "MINT" {
 			tranidentifierDetailMap[v.Tranidentifier].From = "MINI"
 			tranidentifierDetailMap[v.Tranidentifier].Account = account
 			tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
@@ -502,16 +493,16 @@ func GetAccountDealDetail(c *gin.Context) {
 			continue
 		}
 		switch v.Oindex {
-			case "0":
-				tranidentifierDetailMap[v.Tranidentifier].From = v.Oaccountaddress
-				tranidentifierDetailMap[v.Tranidentifier].Account = account
-			case "1":
-				tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
-				tranidentifierDetailMap[v.Tranidentifier].Amount = v.Oamountvalue
-				tranidentifierDetailMap[v.Tranidentifier].Timestamp = v.Mtimestamp
-				tranidentifierDetailMap[v.Tranidentifier].Tranidentifier = v.Tranidentifier
-			case "2":
-				tranidentifierDetailMap[v.Tranidentifier].Fee = v.Oamountvalue
+		case "0":
+			tranidentifierDetailMap[v.Tranidentifier].From = v.Oaccountaddress
+			tranidentifierDetailMap[v.Tranidentifier].Account = account
+		case "1":
+			tranidentifierDetailMap[v.Tranidentifier].To = v.Oaccountaddress
+			tranidentifierDetailMap[v.Tranidentifier].Amount = v.Oamountvalue
+			tranidentifierDetailMap[v.Tranidentifier].Timestamp = v.Mtimestamp
+			tranidentifierDetailMap[v.Tranidentifier].Tranidentifier = v.Tranidentifier
+		case "2":
+			tranidentifierDetailMap[v.Tranidentifier].Fee = v.Oamountvalue
 		}
 	}
 
@@ -532,7 +523,6 @@ func GetAccountDealDetail(c *gin.Context) {
 	res.Page = pageInt
 	res.PageSize = pageSizeInt
 
-
 	c.JSON(200, gin.H{
 		"success": true,
 		"data":    res,
@@ -540,6 +530,13 @@ func GetAccountDealDetail(c *gin.Context) {
 
 }
 
+// @Summary 钱包余额曲线图
+// @Description 钱包余额曲线图
+// @Param  account query string true "account"
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetAccountBalanceCurveRes}
+// @Router /api/block/accountBalanceCurve [get]
 func GetAccountBalanceCurve(c *gin.Context) {
 	account := c.DefaultQuery("account", "")
 	if account == "" {
@@ -554,12 +551,11 @@ func GetAccountBalanceCurve(c *gin.Context) {
 	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
 	rangeEnd := time.Now().Format("2006-01-02")
 
-
 	rangeStart = c.DefaultQuery("range_start", rangeStart)
 	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
 
-	rangeStartTime,_ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
-	rangeEndTime,_ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
 
 	if rangeStartTime.After(rangeEndTime) {
 		c.JSON(500, gin.H{
@@ -587,7 +583,7 @@ func GetAccountBalanceCurve(c *gin.Context) {
 	}
 
 	if len(rangeData) == 0 {
-		for _,date := range rangeDates {
+		for _, date := range rangeDates {
 			dataRes.Date = append(dataRes.Date, date.Format("20060102"))
 			dataRes.Balance = append(dataRes.Balance, balance)
 		}
@@ -600,10 +596,10 @@ func GetAccountBalanceCurve(c *gin.Context) {
 
 	mapRangeData := funk.ToMap(rangeData, "Dt").(map[int64]models.BalanceDaily)
 
-	for _,date := range rangeDates {
+	for _, date := range rangeDates {
 		dateStr := date.Format("20060102")
 		dataRes.Date = append(dataRes.Date, dateStr)
-		dateInt,_ := strconv.ParseInt(dateStr, 10, 64)
+		dateInt, _ := strconv.ParseInt(dateStr, 10, 64)
 		balanceDailyData, ok := mapRangeData[dateInt]
 		if ok {
 			balance = balanceDailyData.Balance
@@ -616,21 +612,23 @@ func GetAccountBalanceCurve(c *gin.Context) {
 	})
 	return
 
-
-
-
 }
 
+// @Summary 活跃钱包曲线图
+// @Description 活跃钱包曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.DAUAccountRes}
+// @Router /api/block/accountDAU [get]
 func GetDAUAccount(c *gin.Context) {
 	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
 	rangeEnd := time.Now().Format("2006-01-02")
 
-
 	rangeStart = c.DefaultQuery("range_start", rangeStart)
 	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
 
-	rangeStartTime,_ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
-	rangeEndTime,_ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
 
 	if rangeStartTime.After(rangeEndTime) {
 		c.JSON(500, gin.H{
@@ -654,10 +652,10 @@ func GetDAUAccount(c *gin.Context) {
 	var res response.DAUAccountRes
 	var dauNumber int64
 
-	for _,date := range rangeDates {
-		dateInt, _ :=strconv.ParseInt(date.Format("20060102"), 10, 64)
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
 
-		if number,ok := mapDau[dateInt];ok {
+		if number, ok := mapDau[dateInt]; ok {
 			dauNumber = number
 		}
 
@@ -673,15 +671,14 @@ func GetDAUAccount(c *gin.Context) {
 	return
 }
 
-func getDateRange(startDate time.Time, endDate time.Time) []time.Time{
+func getDateRange(startDate time.Time, endDate time.Time) []time.Time {
 	diffDays := int(endDate.Sub(startDate).Hours() / 24)
 
 	rangeDate := make([]time.Time, 0, diffDays)
 
-	for i:=0;i<diffDays;i++ {
+	for i := 0; i < diffDays; i++ {
 		rangeDate = append(rangeDate, startDate.AddDate(0, 0, i))
 	}
 
 	return rangeDate
 }
-
