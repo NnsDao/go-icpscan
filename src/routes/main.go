@@ -14,6 +14,8 @@ var (
 	Router = gin.Default()
 )
 
+// @host 139.224.134.111:8080
+
 func Run() {
 
 	mwCORS := cors.New(cors.Config{
