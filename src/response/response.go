@@ -60,3 +60,7 @@ type DAUAccountRes struct {
 	Dt     []int64
 	Number []int64
 }
+
+type LoginRes struct {
+	Name string
+}

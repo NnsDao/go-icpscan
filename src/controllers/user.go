@@ -1,53 +1,111 @@
 package controllers
 
 import (
+	"crypto/rand"
+	"fmt"
+	"io"
+	"os"
+
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
+	"github.com/MatheusMeloAntiquera/api-go/src/response"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
-var users []models.User
-var user models.User
+// var users []models.Users
+// var user models.Users
 
-func UserIndex(context *gin.Context) {
+// func UserIndex(context *gin.Context) {
 
-	Db.Find(&users)
-	context.JSON(200, gin.H{
+// 	Db.Find(&users)
+// 	context.JSON(200, gin.H{
+// 		"success": true,
+// 		"data":    users,
+// 	})
+// }
+
+// func UserShow(context *gin.Context) {
+// 	Db.First(&user, context.Param("id"))
+// 	context.JSON(200, gin.H{
+// 		"success": true,
+// 		"data":    user,
+// 	})
+// }
+
+// func UserCreate(context *gin.Context) {
+// 	user := models.Users{Name: context.PostForm("name")}
+// 	Db.Create(&user)
+// 	context.JSON(200, gin.H{
+// 		"success": true,
+// 		"data":    user,
+// 	})
+// }
+
+// func UserUpdate(context *gin.Context) {
+// 	Db.First(&user, context.Param("id"))
+// 	user.Name = context.PostForm("name")
+// 	Db.Save(&user)
+// 	context.JSON(200, gin.H{
+// 		"success": true,
+// 		"data":    user,
+// 	})
+// }
+
+// func UserDelete(context *gin.Context) {
+// 	Db.First(&user, context.Param("id"))
+// 	Db.Delete(&user)
+// 	context.JSON(200, gin.H{
+// 		"success": true,
+// 	})
+// }
+
+// @Summary 用户登录、注册
+// @Description 用户登录、注册
+// @Param  principal_id query string true "principal_id"
+// @Success 200 {object} response.JSONResult{data=response.LoginRes}
+// @Router /user/login [get]
+func Login(c *gin.Context) {
+	principalId := c.Query("principal_id")
+	if principalId == "" {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "principalId参数不存在",
+		})
+		return
+	}
+	var user *models.Users
+	var res response.LoginRes
+	if err := Db.Table("users").Select("name").Where("principal_id = ?", principalId).First(&user).Error; err == gorm.ErrRecordNotFound {
+		var Aprivate [32]byte
+		//产生随机数
+		if _, err := io.ReadFull(rand.Reader, Aprivate[:]); err != nil {
+			os.Exit(0)
+		}
+		name := fmt.Sprintf("%x", Aprivate)
+		res = response.LoginRes{
+			Name: name,
+		}
+
+		Db.Table("users").Create(&models.Users{
+			Name:        name,
+			PrincipalId: principalId,
+		})
+
+		c.JSON(200, gin.H{
+			"success": true,
+			"data":    res,
+			"message": "",
+		})
+		return
+	}
+
+	res = response.LoginRes{
+		Name: user.Name,
+	}
+	c.JSON(200, gin.H{
 		"success": true,
-		"data":    users,
-	})
-}
-
-func UserShow(context *gin.Context) {
-	Db.First(&user, context.Param("id"))
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    user,
-	})
-}
-
-func UserCreate(context *gin.Context) {
-	user := models.User{Name: context.PostForm("name")}
-	Db.Create(&user)
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    user,
-	})
-}
-
-func UserUpdate(context *gin.Context) {
-	Db.First(&user, context.Param("id"))
-	user.Name = context.PostForm("name")
-	Db.Save(&user)
-	context.JSON(200, gin.H{
-		"success": true,
-		"data":    user,
-	})
-}
-
-func UserDelete(context *gin.Context) {
-	Db.First(&user, context.Param("id"))
-	Db.Delete(&user)
-	context.JSON(200, gin.H{
-		"success": true,
+		"data":    res,
+		"message": "",
 	})
 }
