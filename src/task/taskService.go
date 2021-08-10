@@ -8,12 +8,13 @@ import (
 	"log"
 	"strconv"
 
-	"github.com/MatheusMeloAntiquera/api-go/src/controllers"
-	"github.com/MatheusMeloAntiquera/api-go/src/models"
-	"github.com/robfig/cron/v3"
-	"github.com/bitly/go-simplejson"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/MatheusMeloAntiquera/api-go/src/controllers"
+	"github.com/MatheusMeloAntiquera/api-go/src/models"
+	"github.com/bitly/go-simplejson"
+	"github.com/robfig/cron/v3"
 )
 
 type TaskService interface {
@@ -25,7 +26,7 @@ type taskService struct {
 	cron *cron.Cron
 }
 
-func NewTaskService(cronCli *cron.Cron) (TaskService, error){
+func NewTaskService(cronCli *cron.Cron) (TaskService, error) {
 	return &taskService{
 		cron: cronCli,
 	}, nil
@@ -33,12 +34,12 @@ func NewTaskService(cronCli *cron.Cron) (TaskService, error){
 
 type Identifier struct {
 	NetworkIdentifier Network `json:"network_identifier"`
-	BlockIdentifier Block `json:"block_identifier"`
+	BlockIdentifier   Block   `json:"block_identifier"`
 }
 
 type Network struct {
 	BlockChain string `json:"blockchain"`
-	Network string `json:"network"`
+	Network    string `json:"network"`
 }
 
 type Block struct {
@@ -55,8 +56,7 @@ func (obj *Identifier) Encode() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-
-func (t *taskService) PullBlockDetail()  {
+func (t *taskService) PullBlockDetail() {
 	var blockId []models.Block
 	controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId)
 
@@ -66,15 +66,14 @@ func (t *taskService) PullBlockDetail()  {
 	if err != nil {
 		fmt.Println(err)
 	}
-	j := int32(ih)+1
+	j := int32(ih) + 1
 	fmt.Printf("j value is %d, type is %T", j, j)
 	//return
-	identify :=  Identifier {}
+	identify := Identifier{}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
 	identify.NetworkIdentifier.Network = "00000000000000020101"
 	identify.BlockIdentifier.Index = j
-
 
 	jsonStu, err := json.Marshal(identify)
 	if err != nil {
@@ -83,7 +82,6 @@ func (t *taskService) PullBlockDetail()  {
 
 	//jsonStu是[]byte类型，转化成string类型便于查看
 	//fmt.Println(string(jsonStu))
-
 
 	req, err := http.NewRequest("POST", "https://rosetta-api.internetcomputer.org/block", bytes.NewBuffer(jsonStu))
 	if err != nil {
@@ -104,7 +102,6 @@ func (t *taskService) PullBlockDetail()  {
 	req.Header.Set("referer", "https://dashboard.internetcomputer.org/")
 	req.Header.Set("accept-language", "zh-CN,zh;q=0.9,en;q=0.8")
 
-
 	resp, err := http.DefaultClient.Do(req)
 
 	if err != nil {
@@ -118,7 +115,7 @@ func (t *taskService) PullBlockDetail()  {
 	js, err2 := simplejson.NewJson(str)
 
 	if err2 != nil {
-		fmt.Println("抓取fail" ,err2 )
+		fmt.Println("抓取fail", err2)
 		return
 	}
 	// 保存数据
@@ -148,7 +145,6 @@ func (t *taskService) PullBlockDetail()  {
 	// 转账区块时间 utc
 	var utime = js.Get("block").Get("transactions").GetIndex(0).Get("metadata").Get("timestamp").MustInt()
 
-
 	//fmt.Println(strconv.Itoa(bindex))
 	//fmt.Println(preindex)
 	//fmt.Println(cindex)
@@ -167,7 +163,6 @@ func (t *taskService) PullBlockDetail()  {
 
 	//fmt.Println(tData)
 
-
 	for _, row := range tData {
 		if each_map, ok := row.(map[string]interface{}); ok {
 
@@ -175,10 +170,8 @@ func (t *taskService) PullBlockDetail()  {
 			var oaddress string
 			if start_ts, ok := each_map["account"]; ok {
 
-
 				if plll, ok := start_ts.(map[string]interface{}); ok {
 					oaddress = plll["address"].(string)
-
 
 				}
 
@@ -186,13 +179,11 @@ func (t *taskService) PullBlockDetail()  {
 			var oindex string
 			if start_ts, ok := each_map["operation_identifier"]; ok {
 
-
 				if plll, ok := start_ts.(map[string]interface{}); ok {
 					oindex = string(plll["index"].(json.Number))
 				}
 
 			}
-
 
 			var ovalue string
 			var odecimals string
@@ -205,13 +196,12 @@ func (t *taskService) PullBlockDetail()  {
 					// 转账的金额
 					ovalue = string(plll["value"].(string))
 
-					if op,ok := plll["currency"].(map[string]interface{}); ok{
+					if op, ok := plll["currency"].(map[string]interface{}); ok {
 						odecimals = string(op["decimals"].(json.Number))
 						osymbol = string(op["symbol"].(string))
 					}
 				}
 			}
-
 
 			var otype string
 			var ostatus string
@@ -228,18 +218,17 @@ func (t *taskService) PullBlockDetail()  {
 			//fmt.Println("当前索引",oindex)
 
 			detail := models.Detail{
-				Tranidentifier: tidentify,
-				Oindex: oindex,
-				Otype:  otype ,
-				Ostatus: ostatus,
-				Oaccountaddress: oaddress,
-				Oamountvalue: ovalue,
+				Tranidentifier:          tidentify,
+				Oindex:                  oindex,
+				Otype:                   otype,
+				Ostatus:                 ostatus,
+				Oaccountaddress:         oaddress,
+				Oamountvalue:            ovalue,
 				Oamountcurrencydecimals: odecimals,
-				Oamountcurrencysymbol: osymbol,
-				Mblockheight: strconv.Itoa(bheight),
-				Mmemo: strconv.FormatUint(mmemo, 10),
-				Mtimestamp: strconv.Itoa(utime),
-
+				Oamountcurrencysymbol:   osymbol,
+				Mblockheight:            strconv.Itoa(bheight),
+				Mmemo:                   strconv.FormatUint(mmemo, 10),
+				Mtimestamp:              strconv.Itoa(utime),
 			}
 
 			controllers.Db.Create(&detail)
@@ -248,18 +237,16 @@ func (t *taskService) PullBlockDetail()  {
 		}
 	}
 
-
-
 	// 存储外层信息
 	block := models.Block{
 		Blockidentifier: strconv.Itoa(bindex),
-		Parentblock:  strconv.Itoa(preindex) ,
-		Transactiohash: cindex,
-		Mblockheight: strconv.Itoa(bheight),
-		Mmemo: strconv.FormatUint(mmemo, 10),
-		Tranidentifier: tidentify,
-		Mtimestamp: strconv.Itoa(utime),
-		Blocktimestamp: strconv.Itoa(bttime),
+		Parentblock:     strconv.Itoa(preindex),
+		Transactiohash:  cindex,
+		Mblockheight:    strconv.Itoa(bheight),
+		Mmemo:           strconv.FormatUint(mmemo, 10),
+		Tranidentifier:  tidentify,
+		Mtimestamp:      strconv.Itoa(utime),
+		Blocktimestamp:  strconv.Itoa(bttime),
 	}
 	fmt.Printf("block is %+v", block)
 
@@ -267,8 +254,8 @@ func (t *taskService) PullBlockDetail()  {
 
 }
 
-func (t *taskService) Run()  {
-	id, err := t.cron.AddFunc("@every 5s", t.PullBlockDetail)
+func (t *taskService) Run() {
+	id, err := t.cron.AddFunc("@every 1s", t.PullBlockDetail)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}
@@ -277,5 +264,3 @@ func (t *taskService) Run()  {
 
 	t.cron.Start()
 }
-
-
