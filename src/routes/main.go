@@ -15,14 +15,17 @@ var (
 )
 
 func Run() {
-
+	// 增加COSR头-------------------------------
+	const (
+		accessControlAllowHeaders = "Origin, X-Requested-With, Content-Type, Accept, X-HTTP-Method-Override, Cookie, X-Token, X-Device, X-Plt, X-Ver, X-Page-Id, X-Chl, X-QToken, X-Feature, X-Tk, X-Tag, X-Epid, X-Encrypt, L-Token, X-App, X-Os"
+	)
 	mwCORS := cors.New(cors.Config{
 		//准许跨域请求网站,多个使用,分开,限制使用*
-		AllowOrigins: []string{"*"},
+		AllowOrigins: []string{"icpscan.co", "api.baqiye.com"},
 		//准许使用的请求方式
 		AllowMethods: []string{"PUT", "PATCH", "POST", "GET", "DELETE"},
 		//准许使用的请求表头
-		AllowHeaders: []string{"Origin", "Authorization", "Content-Type"},
+		AllowHeaders: []string{accessControlAllowHeaders},
 		//显示的请求表头
 		ExposeHeaders: []string{"Content-Type"},
 		//凭证共享,确定共享

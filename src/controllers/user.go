@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"unicode/utf8"
 
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
 	"github.com/MatheusMeloAntiquera/api-go/src/response"
@@ -65,8 +66,15 @@ import (
 // @Success 200 {object} response.JSONResult{data=response.LoginRes}
 // @Router /api/user/login [get]
 func Login(c *gin.Context) {
+
+	// 判断是否为ajax请求
+	requestType := c.GetHeader("X-Requested-With")
+	if requestType != "XMLHttpRequest" {
+		return
+	}
+
 	principalId := c.Query("principal_id")
-	if principalId == "" {
+	if principalId == "" || utf8.RuneCountInString(principalId) == 58 {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
