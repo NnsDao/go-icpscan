@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"unicode/utf8"
 
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
 	"github.com/MatheusMeloAntiquera/api-go/src/response"
@@ -74,7 +73,7 @@ func Login(c *gin.Context) {
 	// }
 
 	principalId := c.Query("principal_id")
-	if principalId == "" || utf8.RuneCountInString(principalId) == 58 {
+	if principalId == "" {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
