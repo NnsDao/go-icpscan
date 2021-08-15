@@ -5,7 +5,7 @@ import (
 )
 
 func addUserRoutes() {
-	UserRoutes := Router.Group("/user")
+	UserRoutes := Router.Group("/api/user")
 	{
 		// UserRoutes.GET("/", controllers.UserIndex)
 		// UserRoutes.GET("/:id", controllers.UserShow)

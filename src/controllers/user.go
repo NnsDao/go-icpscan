@@ -63,7 +63,7 @@ import (
 // @Description 用户登录、注册
 // @Param  principal_id query string true "principal_id"
 // @Success 200 {object} response.JSONResult{data=response.LoginRes}
-// @Router /user/login [get]
+// @Router /api/user/login [get]
 func Login(c *gin.Context) {
 	principalId := c.Query("principal_id")
 	if principalId == "" {
