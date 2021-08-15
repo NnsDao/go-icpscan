@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/MatheusMeloAntiquera/api-go/src/models"
 	"github.com/MatheusMeloAntiquera/api-go/src/response"
@@ -73,7 +74,7 @@ func Login(c *gin.Context) {
 	// }
 
 	principalId := c.Query("principal_id")
-	if principalId == "" {
+	if principalId == "" || strings.Count(principalId, "") == 58 {
 		c.JSON(500, gin.H{
 			"success": false,
 			"data":    "",
