@@ -68,10 +68,10 @@ import (
 func Login(c *gin.Context) {
 
 	// 判断是否为ajax请求
-	requestType := c.GetHeader("X-Requested-With")
-	if requestType != "XMLHttpRequest" {
-		return
-	}
+	// requestType := c.GetHeader("X-Requested-With")
+	// if requestType != "XMLHttpRequest" {
+	// 	return
+	// }
 
 	principalId := c.Query("principal_id")
 	if principalId == "" || utf8.RuneCountInString(principalId) == 58 {
