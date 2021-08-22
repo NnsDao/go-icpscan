@@ -163,6 +163,7 @@ func (t *taskService) PullBlockDetail() {
 
 	//fmt.Println(tData)
 	if len(tData) == 0 {
+		fmt.Println("data is empty")
 		return
 	}
 
