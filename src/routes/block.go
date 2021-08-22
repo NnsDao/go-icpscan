@@ -17,6 +17,11 @@ func addBlockRoutes() {
 		BlockRoutes.GET("/searchDetail", controllers.GetAccountDealDetail)
 		BlockRoutes.GET("/accountBalanceCurve", controllers.GetAccountBalanceCurve)
 		BlockRoutes.GET("/accountDAU", controllers.GetDAUAccount)
+		BlockRoutes.GET("/transationCount", controllers.GetDayTransationCount)
+		BlockRoutes.GET("/blockCount", controllers.GetDayBlockCount)
+		BlockRoutes.GET("/transationAmount", controllers.GetDayTransationAmount)
+		BlockRoutes.GET("/destroyAmount", controllers.GetDayDestroyAmount)
+		BlockRoutes.GET("/mintAmount", controllers.GetDayMintAmount)
 
 	}
 }

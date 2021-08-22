@@ -64,3 +64,28 @@ type DAUAccountRes struct {
 type LoginRes struct {
 	Name string
 }
+
+type GetDayTransationCountRes struct {
+	Dt    []int64
+	Count []int64
+}
+
+type GetDayBlockCountRes struct {
+	Dt    []int64
+	Count []int64
+}
+
+type GetDayTransationAmountRes struct {
+	Dt    []int64
+	Count []float64
+}
+
+type GetDayDestroyAmountRes struct {
+	Dt    []int64
+	Count []float64
+}
+
+type GetDayMintAmountRes struct {
+	Dt    []int64
+	Count []float64
+}

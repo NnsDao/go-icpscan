@@ -5,16 +5,17 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"github.com/MatheusMeloAntiquera/api-go/src/models"
-	"github.com/MatheusMeloAntiquera/api-go/src/response"
-	"github.com/bitly/go-simplejson"
-	"github.com/gin-gonic/gin"
-	"github.com/thoas/go-funk"
 	"io/ioutil"
 	"net/http"
 	"sort"
 	"strconv"
 	"time"
+
+	"github.com/MatheusMeloAntiquera/api-go/src/models"
+	"github.com/MatheusMeloAntiquera/api-go/src/response"
+	"github.com/bitly/go-simplejson"
+	"github.com/gin-gonic/gin"
+	"github.com/thoas/go-funk"
 )
 
 var detail models.Detail
@@ -261,7 +262,11 @@ func BlockIndex(context *gin.Context) {
 
 }
 
-// TODO 排行 TOP100
+// 获取排行 TOP100
+// @Summary 排行 TOP100
+// @Description 排行 TOP100
+// @Success 200 {object} response.JSONResult{data=[]models.BlockShow}
+// @Router /api/block/show [get]
 func BlockShow(context *gin.Context) {
 
 	//SELECT MAX(mtimestamp) as mtime, oaccountaddress, sum(oamountvalue) as total, count(*) as times  FROM `details` WHERE otype  <> 'FEE' GROUP BY `oaccountaddress` ORDER BY total desc LIMIT 5
@@ -288,10 +293,11 @@ func BlockShowPpp(context *gin.Context) {
 	})
 }
 
-//
-
-// TODO 最新区块数据
-
+// 获取最新10笔区块数据
+// @Summary 获取最新10笔区块数据
+// @Description 获取最新10笔区块数据
+// @Success 200 {object} response.JSONResult{data=[]response.BlockNewRes}
+// @Router /api/block/newList [get]
 func BlockNew(context *gin.Context) {
 
 	var Res []response.BlockNewRes
@@ -301,8 +307,6 @@ func BlockNew(context *gin.Context) {
 	Db.Table("blocks").Select("mblockheight, mmemo, transactiohash, blocktimestamp").Order("mblockheight desc").Limit(10).Scan(&block)
 	mapBlock := funk.ToMap(block, "Mblockheight").(map[string]models.Block)
 	mblockheight := funk.Get(block, "Mblockheight")
-	fmt.Printf("blocks is %+v\n", block)
-	fmt.Printf("mblockheight is %+v\n", mblockheight)
 
 	Db.Table("details").Select("mblockheight, ostatus, tranidentifier, oaccountaddress, SUM(oamountvalue) as osum").Where("mblockheight In ? AND otype <> ? AND oamountvalue > ?",
 		mblockheight, "FEE", 0).Group("oaccountaddress, mblockheight").Order("mblockheight desc").Scan(&detail)
@@ -610,8 +614,6 @@ func GetAccountBalanceCurve(c *gin.Context) {
 		"success": true,
 		"data":    dataRes,
 	})
-	return
-
 }
 
 // @Summary 活跃钱包曲线图
@@ -668,7 +670,246 @@ func GetDAUAccount(c *gin.Context) {
 		"success": true,
 		"data":    res,
 	})
-	return
+}
+
+// @Summary 交易笔数曲线图
+// @Description 交易笔数曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetDayTransationCountRes}
+// @Router /api/block/transationCount [get]
+func GetDayTransationCount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var transation []models.TransationDaily
+	var dataRes response.GetDayTransationCountRes
+
+	Db.Table("transation_daily").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Group("dt").Scan(&transation)
+
+	mapRangeData := funk.ToMap(transation, "Dt").(map[int64]models.TransationDaily)
+
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
+		dayTransationCount, ok := mapRangeData[dateInt]
+		if ok {
+			dataRes.Dt = append(dataRes.Dt, dateInt)
+			dataRes.Count = append(dataRes.Count, dayTransationCount.TransationNum)
+		}
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
+}
+
+// @Summary 生成区块曲线图
+// @Description 生成区块曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetDayBlockCountRes}
+// @Router /api/block/blockCount [get]
+func GetDayBlockCount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var transation []models.TransationDaily
+	var dataRes response.GetDayBlockCountRes
+
+	Db.Table("transation_daily").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Group("dt").Scan(&transation)
+
+	mapRangeData := funk.ToMap(transation, "Dt").(map[int64]models.TransationDaily)
+
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
+		dayblockCount, ok := mapRangeData[dateInt]
+		if ok {
+			dataRes.Dt = append(dataRes.Dt, dateInt)
+			dataRes.Count = append(dataRes.Count, dayblockCount.BlockNum)
+		}
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
+}
+
+// @Summary 交易金额曲线图
+// @Description 交易金额曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetDayTransationAmountRes}
+// @Router /api/block/transationAmount [get]
+func GetDayTransationAmount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var transation []models.TransationDaily
+	var dataRes response.GetDayTransationAmountRes
+
+	Db.Table("transation_daily").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Group("dt").Scan(&transation)
+
+	mapRangeData := funk.ToMap(transation, "Dt").(map[int64]models.TransationDaily)
+
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
+		dayblockCount, ok := mapRangeData[dateInt]
+		if ok {
+			dataRes.Dt = append(dataRes.Dt, dateInt)
+			dataRes.Count = append(dataRes.Count, dayblockCount.TransationAmount)
+		}
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
+}
+
+// @Summary 销毁数量曲线图
+// @Description 销毁数量曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetDayDestroyAmountRes}
+// @Router /api/block/destroyAmount [get]
+func GetDayDestroyAmount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var transation []models.TransationDaily
+	var dataRes response.GetDayDestroyAmountRes
+
+	Db.Table("transation_daily").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Group("dt").Scan(&transation)
+
+	mapRangeData := funk.ToMap(transation, "Dt").(map[int64]models.TransationDaily)
+
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
+		dayblockCount, ok := mapRangeData[dateInt]
+		if ok {
+			dataRes.Dt = append(dataRes.Dt, dateInt)
+			dataRes.Count = append(dataRes.Count, dayblockCount.DestroyAmount)
+		}
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
+}
+
+// @Summary 铸币曲线图
+// @Description 铸币曲线图
+// @Param  range_start query string false "range_start"
+// @Param  range_end query string false "range_end"
+// @Success 200 {object} response.JSONResult{data=response.GetDayMintAmountRes}
+// @Router /api/block/mintAmount [get]
+func GetDayMintAmount(c *gin.Context) {
+	rangeStart := time.Now().AddDate(0, 0, -7).Format("2006-01-02")
+	rangeEnd := time.Now().Format("2006-01-02")
+
+	rangeStart = c.DefaultQuery("range_start", rangeStart)
+	rangeEnd = c.DefaultQuery("range_end", rangeEnd)
+
+	rangeStartTime, _ := time.ParseInLocation("2006-01-02", rangeStart, time.Local)
+	rangeEndTime, _ := time.ParseInLocation("2006-01-02", rangeEnd, time.Local)
+
+	if rangeStartTime.After(rangeEndTime) {
+		c.JSON(500, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "时间范围不正确",
+		})
+		return
+	}
+
+	rangeDates := getDateRange(rangeStartTime, rangeEndTime)
+
+	var transation []models.TransationDaily
+	var dataRes response.GetDayMintAmountRes
+
+	Db.Table("transation_daily").Where("dt >= ? and dt <= ?", rangeStartTime.Format("20060102"), rangeEndTime.Format("20060102")).Group("dt").Scan(&transation)
+
+	mapRangeData := funk.ToMap(transation, "Dt").(map[int64]models.TransationDaily)
+
+	for _, date := range rangeDates {
+		dateInt, _ := strconv.ParseInt(date.Format("20060102"), 10, 64)
+		dayblockCount, ok := mapRangeData[dateInt]
+		if ok {
+			dataRes.Dt = append(dataRes.Dt, dateInt)
+			dataRes.Count = append(dataRes.Count, dayblockCount.MintAmount)
+		}
+	}
+	c.JSON(200, gin.H{
+		"success": true,
+		"data":    dataRes,
+	})
 }
 
 func getDateRange(startDate time.Time, endDate time.Time) []time.Time {
