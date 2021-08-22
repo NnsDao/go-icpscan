@@ -162,6 +162,9 @@ func (t *taskService) PullBlockDetail() {
 	var tData = js.Get("block").Get("transactions").GetIndex(0).Get("operations").MustArray()
 
 	//fmt.Println(tData)
+	if len(tData) == 0 {
+		return
+	}
 
 	for _, row := range tData {
 		if each_map, ok := row.(map[string]interface{}); ok {
