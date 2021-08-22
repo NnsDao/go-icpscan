@@ -13,6 +13,8 @@ type User struct {
 	Name string
 }
 
+// @host 139.224.134.111:8080
+
 func main() {
 	// 解析配置文件，就不做service了简单来
 	t, err := task.NewTaskService(cron.New())
