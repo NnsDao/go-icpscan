@@ -299,7 +299,6 @@ func BlockShowPpp(context *gin.Context) {
 // @Success 200 {object} response.JSONResult{data=[]response.BlockNewRes}
 // @Router /api/block/newList [get]
 func BlockNew(context *gin.Context) {
-
 	var Res []response.BlockNewRes
 	var block []models.Block
 	var detail []models.NewDetail
