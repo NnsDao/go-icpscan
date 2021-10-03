@@ -19,7 +19,7 @@ func init() {
 	if err := load(&cfg, "icpscan.config"); err != nil {
 		log.Fatalf("err is %v", err)
 	}
-	connection, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/icpscan?charset=utf8mb4&parseTime=True&loc=Local", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port)),
+	connection, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/icp_scan?charset=utf8mb4&parseTime=True&loc=Local", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port)),
 		&gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
