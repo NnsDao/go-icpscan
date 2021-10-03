@@ -1,9 +1,8 @@
-module icpscan
+module github.com/MatheusMeloAntiquera/api-go
 
 go 1.16
 
 require (
-	github.com/MatheusMeloAntiquera/api-go v0.0.0-20210531005147-f1037b6d517d
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/bitly/go-simplejson v0.5.0
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect

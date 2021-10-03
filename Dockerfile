@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:alpine
 
 WORKDIR /go/icpscan
 COPY . .
