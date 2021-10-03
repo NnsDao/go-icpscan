@@ -1,4 +1,4 @@
-module github.com/MatheusMeloAntiquera/api-go
+module icpscan
 
 go 1.16
 

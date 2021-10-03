@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/MatheusMeloAntiquera/api-go/src/controllers"
+	"icpscan/src/controllers"
 )
 
 func addBlockRoutes() {

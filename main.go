@@ -3,8 +3,9 @@ package main
 import (
 	"log"
 
-	Router "github.com/MatheusMeloAntiquera/api-go/src/routes"
-	"github.com/MatheusMeloAntiquera/api-go/src/task"
+	Router "icpscan/src/routes"
+	"icpscan/src/task"
+
 	"github.com/robfig/cron/v3"
 )
 

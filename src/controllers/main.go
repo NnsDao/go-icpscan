@@ -6,7 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/MatheusMeloAntiquera/api-go/src/config"
+	"icpscan/src/config"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )

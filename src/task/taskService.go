@@ -11,8 +11,9 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/MatheusMeloAntiquera/api-go/src/controllers"
-	"github.com/MatheusMeloAntiquera/api-go/src/models"
+	"icpscan/src/controllers"
+	"icpscan/src/models"
+
 	"github.com/bitly/go-simplejson"
 	"github.com/robfig/cron/v3"
 )

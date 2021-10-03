@@ -7,8 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/MatheusMeloAntiquera/api-go/src/models"
-	"github.com/MatheusMeloAntiquera/api-go/src/response"
+	"icpscan/src/models"
+	"icpscan/src/response"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

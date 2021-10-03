@@ -11,8 +11,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/MatheusMeloAntiquera/api-go/src/models"
-	"github.com/MatheusMeloAntiquera/api-go/src/response"
+	"icpscan/src/models"
+	"icpscan/src/response"
+
 	"github.com/bitly/go-simplejson"
 	"github.com/gin-gonic/gin"
 	"github.com/thoas/go-funk"

@@ -1,8 +1,9 @@
 package routes
 
 import (
-	_ "github.com/MatheusMeloAntiquera/api-go/docs"
-	middleware "github.com/MatheusMeloAntiquera/api-go/src/middlewares"
+	_ "icpscan/docs"
+	middleware "icpscan/src/middlewares"
+
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
