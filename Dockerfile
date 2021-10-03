@@ -1,11 +1,17 @@
 FROM golang:latest
 
-WORKDIR /go/api-go
+WORKDIR /go/icpscan
 COPY . .
 
-# RUN echo "teste"
+RUN go generate && go env && go build -o icpscan .
 
-# RUN go get -d -v ./...
-# RUN go install -v ./...
+FROM alpine:latest
+LABEL MAINTAINER="cwb2819259@gmail.com"
 
-# CMD ["echo teste"]
+WORKDIR /go/icpscan
+
+COPY --from=0 /go/src/gin-vue-admin ./
+
+EXPOSE 8080
+
+ENTRYPOINT ./server -c icpscan.config
