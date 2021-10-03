@@ -14,4 +14,4 @@ COPY --from=0 /go/icpscan ./
 
 EXPOSE 8080
 
-ENTRYPOINT ./server -c icpscan.config
+ENTRYPOINT ./icpscan -c icpscan.config
