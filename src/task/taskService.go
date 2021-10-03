@@ -16,6 +16,7 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/robfig/cron/v3"
+	"gorm.io/gorm"
 )
 
 type TaskService interface {
@@ -44,7 +45,7 @@ type Network struct {
 }
 
 type Block struct {
-	Index int32 `json:"index"`
+	Index int64 `json:"index"`
 }
 
 func (obj *Identifier) Encode() ([]byte, error) {
@@ -59,15 +60,23 @@ func (obj *Identifier) Encode() ([]byte, error) {
 
 func (t *taskService) PullBlockDetail() {
 	var blockId []models.Block
-	controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId)
+	var ih int64
+	err := controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId).Error
+	if err != gorm.ErrRecordNotFound {
+		fmt.Printf("err is %+v", err)
+		return
+	} else if err != nil {
+		ih = 0
+	} else {
+		fmt.Println("pppp", blockId[0].Mblockheight)
 
-	fmt.Println("pppp", blockId[0].Mblockheight)
-
-	ih, err := strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
-	if err != nil {
-		fmt.Println(err)
+		ih, err = strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
-	j := int32(ih) + 1
+
+	j := ih + 1
 	fmt.Printf("j value is %d, type is %T", j, j)
 	//return
 	identify := Identifier{}
