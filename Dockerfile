@@ -10,7 +10,7 @@ LABEL MAINTAINER="cwb2819259@gmail.com"
 
 WORKDIR /go/icpscan
 
-COPY --from=0 /go/src/gin-vue-admin ./
+COPY --from=0 /go/icpscan ./
 
 EXPOSE 8080
 
