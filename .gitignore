@@ -23,5 +23,4 @@ builds/**/images/*
 vendor
 icpscan.config
 main
-api-go
-docs
+icpscan

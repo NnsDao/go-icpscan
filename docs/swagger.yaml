@@ -1,0 +1,474 @@
+definitions:
+  models.BlockShow:
+    properties:
+      mtime:
+        type: string
+      oaccountaddress:
+        type: string
+      times:
+        type: number
+      total:
+        type: number
+    type: object
+  response.AccountDealDetail:
+    properties:
+      account:
+        description: 账户地址
+        type: string
+      amount:
+        description: 转账金额
+        type: string
+      fee:
+        description: 转账手续费
+        type: string
+      from:
+        description: 发起转账地址
+        type: string
+      timestamp:
+        description: 区块时间
+        type: string
+      to:
+        description: 接收地址
+        type: string
+      tranidentifier:
+        description: 转账hash
+        type: string
+    type: object
+  response.AccountDealDetailRes:
+    properties:
+      detail:
+        items:
+          $ref: '#/definitions/response.AccountDealDetail'
+        type: array
+      page:
+        type: integer
+      pageSize:
+        type: integer
+      total:
+        type: integer
+    type: object
+  response.BlockNewRes:
+    properties:
+      blocktimestamp:
+        type: string
+      mblockheight:
+        type: string
+      mmemo:
+        type: string
+      oaccountaddress:
+        type: string
+      ostatus:
+        type: string
+      osum:
+        type: string
+      tranidentifier:
+        type: string
+      transactiohash:
+        type: string
+    type: object
+  response.DAUAccountRes:
+    properties:
+      dt:
+        items:
+          type: integer
+        type: array
+      number:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.GetAccountBalanceCurveRes:
+    properties:
+      balance:
+        items:
+          type: string
+        type: array
+      date:
+        items:
+          type: string
+        type: array
+    type: object
+  response.GetDayBlockCountRes:
+    properties:
+      count:
+        items:
+          type: integer
+        type: array
+      dt:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.GetDayDestroyAmountRes:
+    properties:
+      count:
+        items:
+          type: number
+        type: array
+      dt:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.GetDayMintAmountRes:
+    properties:
+      count:
+        items:
+          type: number
+        type: array
+      dt:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.GetDayTransationAmountRes:
+    properties:
+      count:
+        items:
+          type: number
+        type: array
+      dt:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.GetDayTransationCountRes:
+    properties:
+      count:
+        items:
+          type: integer
+        type: array
+      dt:
+        items:
+          type: integer
+        type: array
+    type: object
+  response.JSONResult:
+    properties:
+      data:
+        type: object
+      message:
+        type: string
+      success:
+        type: boolean
+    type: object
+  response.LoginRes:
+    properties:
+      name:
+        type: string
+    type: object
+  response.SearchDetailRes:
+    properties:
+      account:
+        description: 账户地址
+        type: string
+      amount:
+        description: 转账金额
+        type: string
+      balance:
+        description: 账户余额
+        type: string
+      blockHeight:
+        description: 区块高度
+        type: string
+      decimals:
+        description: 转账货币位数
+        type: string
+      fee:
+        description: 转账手续费
+        type: string
+      from:
+        description: 发起转账地址
+        type: string
+      memo:
+        description: 区块备注
+        type: string
+      status:
+        description: 按正常来说应该是枚举，但是数据库存放的是字符串英文
+        type: string
+      symbol:
+        description: 转账货币符号
+        type: string
+      timestamp:
+        description: 区块时间
+        type: string
+      to:
+        description: 接收地址
+        type: string
+      tranidentifier:
+        description: 转账hash
+        type: string
+      type:
+        description: '1: Transaction 2:Account'
+        type: integer
+    type: object
+info:
+  contact: {}
+paths:
+  /api/block/accountBalanceCurve:
+    get:
+      description: 钱包余额曲线图
+      parameters:
+      - description: account
+        in: query
+        name: account
+        required: true
+        type: string
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetAccountBalanceCurveRes'
+              type: object
+      summary: 钱包余额曲线图
+  /api/block/accountDAU:
+    get:
+      description: 活跃钱包曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.DAUAccountRes'
+              type: object
+      summary: 活跃钱包曲线图
+  /api/block/blockCount:
+    get:
+      description: 生成区块曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDayBlockCountRes'
+              type: object
+      summary: 生成区块曲线图
+  /api/block/destroyAmount:
+    get:
+      description: 销毁数量曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDayDestroyAmountRes'
+              type: object
+      summary: 销毁数量曲线图
+  /api/block/mintAmount:
+    get:
+      description: 铸币曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDayMintAmountRes'
+              type: object
+      summary: 铸币曲线图
+  /api/block/newList:
+    get:
+      description: 获取最新10笔区块数据
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/response.BlockNewRes'
+                  type: array
+              type: object
+      summary: 获取最新10笔区块数据
+  /api/block/search:
+    get:
+      description: 查询交易、账户信息
+      parameters:
+      - description: recorde_addr
+        in: query
+        name: recorde_addr
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.SearchDetailRes'
+              type: object
+      summary: 查询交易、账户信息
+  /api/block/searchDetail:
+    get:
+      description: 账户交易详情
+      parameters:
+      - description: account
+        in: query
+        name: account
+        required: true
+        type: string
+      - description: page
+        in: query
+        name: page
+        type: string
+      - description: page_size
+        in: query
+        name: page_size
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.AccountDealDetailRes'
+              type: object
+      summary: 账户交易详情
+  /api/block/show:
+    get:
+      description: 排行 TOP100
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.BlockShow'
+                  type: array
+              type: object
+      summary: 排行 TOP100
+  /api/block/transationAmount:
+    get:
+      description: 交易金额曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDayTransationAmountRes'
+              type: object
+      summary: 交易金额曲线图
+  /api/block/transationCount:
+    get:
+      description: 交易笔数曲线图
+      parameters:
+      - description: range_start
+        in: query
+        name: range_start
+        type: string
+      - description: range_end
+        in: query
+        name: range_end
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.GetDayTransationCountRes'
+              type: object
+      summary: 交易笔数曲线图
+  /api/user/login:
+    get:
+      description: 用户登录、注册
+      parameters:
+      - description: principal_id
+        in: query
+        name: principal_id
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.JSONResult'
+            - properties:
+                data:
+                  $ref: '#/definitions/response.LoginRes'
+              type: object
+      summary: 用户登录、注册
+swagger: "2.0"
