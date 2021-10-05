@@ -16,7 +16,6 @@ import (
 
 	"github.com/bitly/go-simplejson"
 	"github.com/robfig/cron/v3"
-	"gorm.io/gorm"
 )
 
 type TaskService interface {
@@ -65,19 +64,24 @@ func (t *taskService) PullBlockDetail() {
 	fmt.Printf("err is %+v\n", err)
 	fmt.Printf("blockId is %+v\n", blockId)
 
-	if err == gorm.ErrRecordNotFound {
+	if len(blockId) == 0 {
 		ih = -1
-	} else if err != nil {
-		fmt.Printf("err is %+v", err)
-		return
 	} else {
 		fmt.Println("pppp", blockId[0].Mblockheight)
-
 		ih, err = strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
+
+	// if err == gorm.ErrRecordNotFound {
+		
+	// } else if err != nil {
+	// 	fmt.Printf("err is %+v", err)
+	// 	return
+	// } else {
+		
+	// }
 
 	j := ih + 1
 	fmt.Printf("j value is %d, type is %T", j, j)
