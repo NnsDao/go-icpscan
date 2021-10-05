@@ -62,7 +62,7 @@ func (t *taskService) PullBlockDetail() {
 	var blockId []models.Block
 	var ih int64
 	err := controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId).Error
-	if err != gorm.ErrRecordNotFound {
+	if err != nil && err != gorm.ErrRecordNotFound {
 		fmt.Printf("err is %+v", err)
 		return
 	} else if err != nil {
