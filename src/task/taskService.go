@@ -66,7 +66,7 @@ func (t *taskService) PullBlockDetail() {
 		fmt.Printf("err is %+v", err)
 		return
 	} else if err != nil {
-		ih = 0
+		ih = -1
 	} else {
 		fmt.Println("pppp", blockId[0].Mblockheight)
 
@@ -91,7 +91,7 @@ func (t *taskService) PullBlockDetail() {
 	}
 
 	//jsonStu是[]byte类型，转化成string类型便于查看
-	//fmt.Println(string(jsonStu))
+	fmt.Println(string(jsonStu))
 
 	req, err := http.NewRequest("POST", "https://rosetta-api.internetcomputer.org/block", bytes.NewBuffer(jsonStu))
 	if err != nil {
@@ -113,6 +113,8 @@ func (t *taskService) PullBlockDetail() {
 	req.Header.Set("accept-language", "zh-CN,zh;q=0.9,en;q=0.8")
 
 	resp, err := http.DefaultClient.Do(req)
+	fmt.Printf("resp is %+v\n", resp)
+	fmt.Printf("err is %+v\n", err)
 
 	if err != nil {
 		panic(err)
@@ -121,6 +123,7 @@ func (t *taskService) PullBlockDetail() {
 	defer resp.Body.Close()
 
 	str, _ := ioutil.ReadAll(resp.Body)
+	fmt.Printf("res is %+v\n", str)
 
 	js, err2 := simplejson.NewJson(str)
 

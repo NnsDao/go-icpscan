@@ -8,11 +8,13 @@ import (
 
 	"icpscan/src/config"
 
+	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 var Db *gorm.DB
+var RedisDb *redis.Client
 
 func init() {
 	var cfg config.DbConfig
@@ -27,8 +29,13 @@ func init() {
 	}
 
 	Db = connection
-}
 
+	RedisDb = redis.NewClient(&redis.Options{
+		Addr:     "gva-redis",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+}
 
 func load(cfg interface{}, f string) error {
 	content, err := ioutil.ReadFile(f)
