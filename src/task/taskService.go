@@ -2,11 +2,13 @@ package task
 
 import (
 	"bytes"
+	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"io/ioutil"
 	"net/http"
@@ -75,17 +77,30 @@ func (t *taskService) PullBlockDetail() {
 	}
 
 	// if err == gorm.ErrRecordNotFound {
-		
+
 	// } else if err != nil {
 	// 	fmt.Printf("err is %+v", err)
 	// 	return
 	// } else {
-		
+
 	// }
 
 	j := ih + 1
 	fmt.Printf("j value is %d, type is %T", j, j)
 	//return
+	// redis锁
+	currentBlockHeightKey := strconv.FormatInt(j, 10)
+	ctx := context.Background()
+	pong, err := controllers.RedisDb.Ping(ctx).Result()
+	fmt.Println(pong, err)
+	value := controllers.RedisDb.Get(ctx, currentBlockHeightKey)
+	fmt.Printf("redis value is %+v\n", value)
+	if value.Val() != "" {
+		return
+	}
+	controllers.RedisDb.Set(ctx, currentBlockHeightKey, 1, 5)
+	value1 := controllers.RedisDb.Get(ctx, currentBlockHeightKey)
+	fmt.Printf("redis value is Get %+v\n", value1)
 	identify := Identifier{}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
@@ -275,11 +290,21 @@ func (t *taskService) PullBlockDetail() {
 	fmt.Printf("block is %+v", block)
 
 	controllers.Db.Create(&block)
+	i := controllers.RedisDb.Del(ctx, currentBlockHeightKey)
+	fmt.Printf("redis delete is %+v\n", i)
 
 }
 
+func (t *taskService) whilePull() {
+	for {
+		t.PullBlockDetail()
+		time.Sleep(time.Duration(100) * time.Millisecond)
+	}
+}
+
 func (t *taskService) Run() {
-	id, err := t.cron.AddFunc("@every 3s", t.PullBlockDetail)
+	// id, err := t.cron.AddFunc("@every 3s", t.PullBlockDetail)
+	id, err := t.cron.AddFunc("15 11 * * *", t.whilePull)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}

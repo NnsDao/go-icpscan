@@ -31,7 +31,7 @@ func init() {
 	Db = connection
 
 	RedisDb = redis.NewClient(&redis.Options{
-		Addr:     "gva-redis",
+		Addr:     "gva-redis:16379",
 		Password: "", // no password set
 		DB:       0,  // use default DB
 	})
