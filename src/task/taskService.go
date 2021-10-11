@@ -494,7 +494,7 @@ func (t *taskService) whilePull() {
 
 func (t *taskService) Run() {
 	// id, err := t.cron.AddFunc("@every 3s", t.PullBlockDetail)
-	id, err := t.cron.AddFunc("25 06 09 11 *", t.whilePull)
+	id, err := t.cron.AddFunc("30 06 11 09 *", t.whilePull)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}
