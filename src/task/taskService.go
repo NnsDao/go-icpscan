@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"io/ioutil"
 	"net/http"
@@ -62,13 +63,12 @@ func (t *taskService) PullBlockDetail() {
 	var blockId []models.Block
 	var ih int64
 	err := controllers.Db.Table("blocks").Select("mblockheight").Order("mblockheight desc").Limit(1).Scan(&blockId).Error
-	fmt.Printf("err is %+v\n", err)
-	fmt.Printf("blockId is %+v\n", blockId)
+	fmt.Printf("blockId is %+v\n", blockId[0].Mblockheight)
 
 	if len(blockId) == 0 {
 		ih = -1
 	} else {
-		fmt.Println("pppp", blockId[0].Mblockheight)
+		fmt.Printf("pppp%+v\n", blockId[0].Mblockheight)
 		ih, err = strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
 		if err != nil {
 			fmt.Println(err)
@@ -88,18 +88,19 @@ func (t *taskService) PullBlockDetail() {
 	fmt.Printf("j value is %d, type is %T", j, j)
 	//return
 	// redis锁
-	currentBlockHeightKey := strconv.FormatInt(j, 10)
+	currentBlockHeightKey := "blockHeight:" + strconv.FormatInt(j, 10)
 	ctx := context.Background()
 	pong, err := controllers.RedisDb.Ping(ctx).Result()
 	fmt.Println(pong, err)
-	value := controllers.RedisDb.Get(ctx, currentBlockHeightKey)
-	fmt.Printf("redis value is %+v\n", value)
-	if value.Val() != "" {
+	value, _ := controllers.RedisDb.Get(ctx, currentBlockHeightKey).Result()
+
+	if value != "" {
+		fmt.Println("currentBlockHeightKey is running")
 		return
 	}
-	controllers.RedisDb.Set(ctx, currentBlockHeightKey, 1, 5)
-	value1 := controllers.RedisDb.Get(ctx, currentBlockHeightKey)
-	fmt.Printf("redis value is Get %+v\n", value1)
+
+	controllers.RedisDb.Set(ctx, currentBlockHeightKey, "1", 30*time.Second)
+
 	identify := Identifier{}
 
 	identify.NetworkIdentifier.BlockChain = "Internet Computer"
@@ -493,8 +494,8 @@ func (t *taskService) whilePull() {
 }
 
 func (t *taskService) Run() {
-	// id, err := t.cron.AddFunc("@every 3s", t.PullBlockDetail)
-	id, err := t.cron.AddFunc("32 06 11 10 *", t.whilePull)
+	id, err := t.cron.AddFunc("@every 2s", t.PullBlockDetail)
+	// id, err := t.cron.AddFunc("32 06 11 10 *", t.whilePull)
 	if err != nil {
 		log.Printf("PullBlockDetail err %v", err)
 	}
