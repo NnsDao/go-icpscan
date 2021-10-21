@@ -17,12 +17,12 @@ var Db *gorm.DB
 var RedisDb *redis.Client
 
 func init() {
-	var cfg config.DbConfig
+	var cfg config.Config
 	if err := load(&cfg, "icpscan.config"); err != nil {
 		log.Fatalf("err is %v", err)
 	}
 	fmt.Printf("cf is %+v", cfg)
-	connection, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/icp_scan?charset=utf8mb4&parseTime=True&loc=Local", cfg.UserName, cfg.Password, cfg.Addr, cfg.Port)),
+	connection, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/icp_scan?charset=utf8mb4&parseTime=True&loc=Local", cfg.Mysql.UserName, cfg.Mysql.Password, cfg.Mysql.Addr, cfg.Mysql.Port)),
 		&gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -31,10 +31,9 @@ func init() {
 	Db = connection
 
 	RedisDb = redis.NewClient(&redis.Options{
-		Addr: "gva-redis:6379",
-		// Addr:     "127.0.0.1:6379",
-		Password: "", // no password set
-		DB:       0,  // use default DB
+		Addr:     cfg.Redis.Addr,
+		Password: cfg.Redis.Password, // no password set
+		DB:       cfg.Redis.DB,       // use default DB
 	})
 }
 
