@@ -198,6 +198,8 @@ func (t *taskService) PullBlockDetail() {
 	//fmt.Println(tData)
 	if len(tData) == 0 {
 		fmt.Println("data is empty")
+		i := controllers.RedisDb.Del(ctx, currentBlockHeightKey)
+		fmt.Printf("redis delete is %+v\n", i)
 		return
 	}
 
