@@ -68,7 +68,6 @@ func (t *taskService) PullBlockDetail() {
 	if len(blockId) == 0 {
 		ih = -1
 	} else {
-		fmt.Printf("pppp%+v\n", blockId[0].Mblockheight)
 		ih, err = strconv.ParseInt(blockId[0].Mblockheight, 10, 32)
 		if err != nil {
 			fmt.Println(err)
@@ -85,13 +84,13 @@ func (t *taskService) PullBlockDetail() {
 	// }
 
 	j := ih + 1
-	fmt.Printf("j value is %d, type is %T", j, j)
+	// fmt.Printf("j value is %d, type is %T", j, j)
 	//return
 	// redis锁
 	currentBlockHeightKey := "blockHeight:" + strconv.FormatInt(j, 10)
 	ctx := context.Background()
-	pong, err := controllers.RedisDb.Ping(ctx).Result()
-	fmt.Println(pong, err)
+	// pong, err := controllers.RedisDb.Ping(ctx).Result()
+	// fmt.Println(pong, err)
 	value, _ := controllers.RedisDb.Get(ctx, currentBlockHeightKey).Result()
 
 	if value != "" {
@@ -113,7 +112,7 @@ func (t *taskService) PullBlockDetail() {
 	}
 
 	//jsonStu是[]byte类型，转化成string类型便于查看
-	fmt.Println(string(jsonStu))
+	// fmt.Println(string(jsonStu))
 
 	req, err := http.NewRequest("POST", "https://rosetta-api.internetcomputer.org/block", bytes.NewBuffer(jsonStu))
 	if err != nil {
@@ -135,8 +134,8 @@ func (t *taskService) PullBlockDetail() {
 	req.Header.Set("accept-language", "zh-CN,zh;q=0.9,en;q=0.8")
 
 	resp, err := http.DefaultClient.Do(req)
-	fmt.Printf("resp is %+v\n", resp)
-	fmt.Printf("err is %+v\n", err)
+	// fmt.Printf("resp is %+v\n", resp)
+	// fmt.Printf("err is %+v\n", err)
 
 	if err != nil {
 		panic(err)
@@ -145,7 +144,7 @@ func (t *taskService) PullBlockDetail() {
 	defer resp.Body.Close()
 
 	str, _ := ioutil.ReadAll(resp.Body)
-	fmt.Printf("res is %+v\n", str)
+	// fmt.Printf("res is %+v\n", str)
 
 	js, err2 := simplejson.NewJson(str)
 
@@ -271,7 +270,7 @@ func (t *taskService) PullBlockDetail() {
 			}
 
 			controllers.Db.Create(&detail)
-			fmt.Printf("detail is %+v", detail)
+			// fmt.Printf("detail is %+v", detail)
 
 		}
 	}
@@ -287,7 +286,7 @@ func (t *taskService) PullBlockDetail() {
 		Mtimestamp:      strconv.Itoa(utime),
 		Blocktimestamp:  strconv.Itoa(bttime),
 	}
-	fmt.Printf("block is %+v", block)
+	// fmt.Printf("block is %+v", block)
 
 	controllers.Db.Create(&block)
 	i := controllers.RedisDb.Del(ctx, currentBlockHeightKey)
