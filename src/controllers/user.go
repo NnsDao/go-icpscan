@@ -139,7 +139,7 @@ func WalletRelation(c *gin.Context) {
 		fmt.Println(err)
 
 		cmdStr := "./transition_account " + res.Principal
-		cmd := exec.Command("bash", "-c", cmdStr)
+		cmd := exec.Command("/bin/sh", "-c", cmdStr)
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
