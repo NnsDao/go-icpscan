@@ -21,7 +21,6 @@ func init() {
 	if err := load(&cfg, "icpscan.config"); err != nil {
 		log.Fatalf("err is %v", err)
 	}
-	fmt.Printf("cf is %+v", cfg)
 	connection, err := gorm.Open(mysql.Open(fmt.Sprintf("%s:%s@tcp(%s:%s)/icp_scan?charset=utf8mb4&parseTime=True&loc=Local", cfg.Mysql.UserName, cfg.Mysql.Password, cfg.Mysql.Addr, cfg.Mysql.Port)),
 		&gorm.Config{})
 	if err != nil {
