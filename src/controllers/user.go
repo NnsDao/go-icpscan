@@ -143,10 +143,11 @@ func WalletRelation(c *gin.Context) {
 
 		out, err := cmd.CombinedOutput()
 		if err != nil {
+			fmt.Println(err)
 			c.JSON(401, gin.H{
 				"success": false,
 				"data":    "",
-				"message": "arg err",
+				"message": "cmd err",
 			})
 			return
 		}
