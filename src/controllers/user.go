@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"strings"
 
 	"icpscan/src/models"
@@ -117,4 +118,64 @@ func Login(c *gin.Context) {
 		"data":    res,
 		"message": "",
 	})
+}
+
+func WalletRelation(c *gin.Context) {
+	res := response.WalletRelationRes{}
+	err := c.Bind(&res)
+	if err != nil {
+		c.JSON(401, gin.H{
+			"success": false,
+			"data":    "",
+			"message": "arg err",
+		})
+		return
+	}
+
+	fmt.Printf("%+v", res)
+
+	if err := Db.Where("principal = ?", res.Principal).First(&models.WalletRelation{}).Error; err == gorm.ErrRecordNotFound {
+
+		fmt.Println(err)
+
+		cmdStr := "./transition_account " + res.Principal
+		cmd := exec.Command("bash", "-c", cmdStr)
+
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			c.JSON(401, gin.H{
+				"success": false,
+				"data":    "",
+				"message": "arg err",
+			})
+			return
+		}
+
+		addr := fmt.Sprintf("%s", out)
+
+		fmt.Println(addr)
+		fmt.Println(res.Address)
+
+		if addr != res.Address {
+			c.JSON(401, gin.H{
+				"success": false,
+				"data":    "",
+				"message": "arg err",
+			})
+			return
+		}
+
+		walletRelation := models.WalletRelation{
+			Principal: res.Principal,
+			Address:   res.Address,
+		}
+
+		Db.Create(&walletRelation)
+	}
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"message": "",
+	})
+
 }

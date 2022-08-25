@@ -13,5 +13,6 @@ func addUserRoutes() {
 		// UserRoutes.PUT("/:id", controllers.UserUpdate)
 		// UserRoutes.DELETE("/:id", controllers.UserDelete)
 		UserRoutes.GET("/login", controllers.Login)
+		UserRoutes.POST("/wallet_relation", controllers.WalletRelation)
 	}
 }

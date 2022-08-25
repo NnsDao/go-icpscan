@@ -89,3 +89,8 @@ type GetDayMintAmountRes struct {
 	Dt    []int64
 	Count []float64
 }
+
+type WalletRelationRes struct {
+	Principal string `json:"principal"`
+	Address   string `json:"address"`
+}
