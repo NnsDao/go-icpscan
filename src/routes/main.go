@@ -39,6 +39,7 @@ func Run() {
 	Router.Use(middleware.Cors())
 	addUserRoutes()
 	addBlockRoutes()
+	addPodcastRoutes()
 
 	// 开启swag
 	Router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
